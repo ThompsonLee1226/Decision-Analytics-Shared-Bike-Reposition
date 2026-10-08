@@ -7,3 +7,4 @@
 
 /EDA/.tilecache
 /Dataset/dataset_train_20260921_lsz.csv
+EDA/out/trips_clean.csv.gz
