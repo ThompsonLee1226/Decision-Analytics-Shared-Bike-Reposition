@@ -1,0 +1,332 @@
+{
+  "generated_at": "2026-10-08T18:55:00",
+  "input": {
+    "path": "D:\\霄霄\\THU\\Decision Analytics\\Dataset\\dataset_train_20260921_lsz.csv",
+    "sha256": "03e1eaf108a3f2bad16cb5573c1404440a7284cd213239ec6853c557e5a850ba",
+    "rows": 667821,
+    "cols": 7,
+    "columns": [
+      "action_dt",
+      "order_id",
+      "bike_id",
+      "start_time",
+      "end_time",
+      "start_geohash",
+      "end_geohash"
+    ]
+  },
+  "config": {
+    "max_speed_kmh": 30.0,
+    "long_trip_min": 180.0,
+    "anomaly_day_rel": 0.5,
+    "region_prefix_len": 4,
+    "min_region_share": 0.001,
+    "cell_levels": [
+      4,
+      5,
+      6
+    ],
+    "study_window": [
+      null,
+      null
+    ],
+    "clean_drop_flags": [
+      "qc_unparsed",
+      "qc_null_required",
+      "qc_dup_order",
+      "qc_bad_geohash",
+      "qc_neg_dur",
+      "qc_zero_dur",
+      "qc_speed_gt_30",
+      "qc_cross_region",
+      "qc_dur_gt_180",
+      "qc_anomaly_day",
+      "qc_outside_window"
+    ],
+    "clean_keep_flags": [
+      "qc_dur_gt_60",
+      "qc_same_geohash"
+    ]
+  },
+  "structural_checks": {
+    "missing_columns": [],
+    "blank_counts": {
+      "action_dt": 0,
+      "order_id": 0,
+      "bike_id": 0,
+      "start_time": 0,
+      "end_time": 0,
+      "start_geohash": 0,
+      "end_geohash": 0
+    },
+    "duplicate_order_ids": {
+      "distinct": 667821,
+      "rows_affected": 0
+    },
+    "unparseable_timestamps": 0,
+    "invalid_geohashes": 0,
+    "geohash_lengths": {
+      "8": 1335642
+    },
+    "action_dt_redundancy": {
+      "mismatches_vs_start_time_date": 0,
+      "verdict": "redundant -- safe to drop"
+    },
+    "n_rows": 667821
+  },
+  "flags": {
+    "qc_null_required": {
+      "n": 0,
+      "pct": 0.0
+    },
+    "qc_dup_order": {
+      "n": 0,
+      "pct": 0.0
+    },
+    "qc_unparsed": {
+      "n": 0,
+      "pct": 0.0
+    },
+    "qc_bad_geohash": {
+      "n": 0,
+      "pct": 0.0
+    },
+    "qc_neg_dur": {
+      "n": 0,
+      "pct": 0.0
+    },
+    "qc_zero_dur": {
+      "n": 5835,
+      "pct": 0.8737
+    },
+    "qc_speed_gt_30": {
+      "n": 329,
+      "pct": 0.0493
+    },
+    "qc_cross_region": {
+      "n": 953,
+      "pct": 0.1427
+    },
+    "qc_dur_gt_60": {
+      "n": 11116,
+      "pct": 1.6645
+    },
+    "qc_dur_gt_180": {
+      "n": 49,
+      "pct": 0.0073
+    },
+    "qc_same_geohash": {
+      "n": 4736,
+      "pct": 0.7092
+    },
+    "qc_anomaly_day": {
+      "n": 2463,
+      "pct": 0.3688
+    },
+    "qc_outside_window": {
+      "n": 0,
+      "pct": 0.0
+    }
+  },
+  "outputs": {
+    "trips_clean": {
+      "path": "D:\\霄霄\\THU\\Decision Analytics\\EDA\\out\\trips_clean.csv.gz",
+      "rows": 658304,
+      "cols": 41
+    },
+    "cell_summary": {
+      "path": "D:\\霄霄\\THU\\Decision Analytics\\EDA\\out\\cell_summary.csv",
+      "rows": 41587
+    },
+    "cleaning_summary": {
+      "path": "D:\\霄霄\\THU\\Decision Analytics\\EDA\\out\\cleaning_summary.md"
+    },
+    "cleaning_report": {
+      "path": "D:\\霄霄\\THU\\Decision Analytics\\EDA\\out\\cleaning_report.json"
+    }
+  },
+  "findings": [
+    "The file is structurally pristine: 0 unparseable timestamps, 0 invalid geohashes, 0 duplicated order_ids, 0 missing values. Cleaning is about anomaly triage, not repair.",
+    "`action_dt` is fully redundant with the date part of `start_time` (0 mismatches).",
+    "5,835 zero-minute trips (0.8737%). 4,530 of them (77.635% of zero-minute rows) cross geohash cells, which is impossible at 8-char (~38 m) precision -- evidence that the cause is minute-level timestamp rounding collapsing sub-minute rides, not user error.",
+    "Before cleaning, duration is heavily right-skewed: median 7 min, p99 71 min, max 774 min (11,116 trips exceed 60 min). After cleaning the median is unchanged but the max falls to 180 min and the CV drops 1.1839 -> 1.1543.",
+    "1 candidate anomaly day detected below 50% of its local baseline.",
+    "Cleaning removes 9,517 rows (1.4251%), leaving 658,304 for analysis."
+  ],
+  "region": {
+    "prefix_len": 4,
+    "min_share": 0.001,
+    "kept_prefixes": [
+      "wx4e",
+      "wx4g"
+    ],
+    "kept_share": 0.999552,
+    "dropped_prefixes": {
+      "wx4d": 197,
+      "wx4f": 49,
+      "wx4s": 30,
+      "wx4u": 12,
+      "wwgq": 4,
+      "wqj7": 2,
+      "weby": 1,
+      "wrnp": 1,
+      "ww8p": 1,
+      "wecp": 1,
+      "wxrv": 1
+    }
+  },
+  "anomaly_days": {
+    "threshold_rel": 0.5,
+    "n_flagged": 1,
+    "detail": [
+      {
+        "date": "2026-05-17",
+        "trips": 2463,
+        "local_baseline": 10876.0,
+        "ratio": 0.226
+      }
+    ]
+  },
+  "flags_summary": {
+    "rows_clean_of_any_flag": 644272,
+    "rows_with_1_flag": 21628,
+    "rows_with_2plus_flags": 1921
+  },
+  "duration_before_cleaning": {
+    "label": "all rows",
+    "n": 667821,
+    "mean": 11.132,
+    "std": 13.179,
+    "cv": 1.1839,
+    "q00": 0.0,
+    "q01": 1.0,
+    "q05": 2.0,
+    "q25": 4.0,
+    "q50": 7.0,
+    "q75": 12.0,
+    "q95": 36.0,
+    "q99": 71.0,
+    "q100": 774.0
+  },
+  "duration_after_cleaning": {
+    "label": "clean rows",
+    "n": 658304,
+    "mean": 11.145,
+    "std": 12.864,
+    "cv": 1.1543,
+    "q00": 1.0,
+    "q01": 1.0,
+    "q05": 2.0,
+    "q25": 4.0,
+    "q50": 7.0,
+    "q75": 12.0,
+    "q95": 35.0,
+    "q99": 71.0,
+    "q100": 180.0
+  },
+  "filters": [
+    {
+      "flag": "qc_unparsed",
+      "tier": 0,
+      "rows_dropped": 0,
+      "pct_dropped": 0.0
+    },
+    {
+      "flag": "qc_null_required",
+      "tier": 0,
+      "rows_dropped": 0,
+      "pct_dropped": 0.0
+    },
+    {
+      "flag": "qc_dup_order",
+      "tier": 0,
+      "rows_dropped": 0,
+      "pct_dropped": 0.0
+    },
+    {
+      "flag": "qc_bad_geohash",
+      "tier": 0,
+      "rows_dropped": 0,
+      "pct_dropped": 0.0
+    },
+    {
+      "flag": "qc_neg_dur",
+      "tier": 1,
+      "rows_dropped": 0,
+      "pct_dropped": 0.0
+    },
+    {
+      "flag": "qc_zero_dur",
+      "tier": 1,
+      "rows_dropped": 5835,
+      "pct_dropped": 0.8737
+    },
+    {
+      "flag": "qc_speed_gt_30",
+      "tier": 1,
+      "rows_dropped": 329,
+      "pct_dropped": 0.0493
+    },
+    {
+      "flag": "qc_cross_region",
+      "tier": 1,
+      "rows_dropped": 953,
+      "pct_dropped": 0.1427
+    },
+    {
+      "flag": "qc_dur_gt_180",
+      "tier": 2,
+      "rows_dropped": 49,
+      "pct_dropped": 0.0073
+    },
+    {
+      "flag": "qc_anomaly_day",
+      "tier": 2,
+      "rows_dropped": 2463,
+      "pct_dropped": 0.3688
+    },
+    {
+      "flag": "qc_outside_window",
+      "tier": 2,
+      "rows_dropped": 0,
+      "pct_dropped": 0.0
+    }
+  ],
+  "cleaning_result": {
+    "rows_in": 667821,
+    "rows_out": 658304,
+    "rows_dropped_unique": 9517,
+    "pct_dropped": 1.4251
+  },
+  "coverage": {
+    "start_time_range": [
+      "2026-03-02 00:02:00",
+      "2026-05-24 23:58:00"
+    ],
+    "end_time_range": [
+      "2026-03-02 00:10:00",
+      "2026-05-25 01:54:00"
+    ],
+    "distinct_dates": 84,
+    "missing_dates": 0,
+    "span_days": 84,
+    "per_weekday_counts": {
+      "0": 98675,
+      "1": 105803,
+      "2": 109533,
+      "3": 105492,
+      "4": 107064,
+      "5": 76289,
+      "6": 64965
+    },
+    "clean_distinct_dates": 83,
+    "clean_start_time_range": [
+      "2026-03-02 00:02:00",
+      "2026-05-24 23:58:00"
+    ],
+    "clean_end_time_range": [
+      "2026-03-02 00:10:00",
+      "2026-05-25 01:54:00"
+    ]
+  }
+}

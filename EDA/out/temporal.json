@@ -1,0 +1,23 @@
+{
+ "days": 83,
+ "daily_mean": 7931.37,
+ "daily_var": 4221321.9,
+ "daily_sd": 2054.59,
+ "daily_min": 3806,
+ "daily_max": 11192,
+ "weekday_mean": 8683.72,
+ "weekend_mean": 5968.74,
+ "march_mean": 7246.23,
+ "apr_may_mean": 8319.19,
+ "hour_peak_weekday": 8,
+ "hour_peak_weekend": 17,
+ "dow_row_peaks": {
+  "Mon": 8,
+  "Tue": 8,
+  "Wed": 8,
+  "Thu": 8,
+  "Fri": 8,
+  "Sat": 17,
+  "Sun": 17
+ }
+}

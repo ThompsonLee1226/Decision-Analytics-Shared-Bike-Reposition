@@ -1,0 +1,103 @@
+{
+ "target": "hourly departure count per (L6 cell, hour, day)",
+ "top_cells": 30,
+ "panel_rows": 54720,
+ "panel_departures": 592139,
+ "nonzero_share": 0.7011,
+ "blocks": [
+  {
+   "block": 1,
+   "start": "2026-03-09",
+   "end": "2026-03-27",
+   "days": 19.0,
+   "role": "train only"
+  },
+  {
+   "block": 2,
+   "start": "2026-03-28",
+   "end": "2026-04-15",
+   "days": 19.0,
+   "role": "validate"
+  },
+  {
+   "block": 3,
+   "start": "2026-04-16",
+   "end": "2026-05-04",
+   "days": 19.0,
+   "role": "validate"
+  },
+  {
+   "block": 4,
+   "start": "2026-05-05",
+   "end": "2026-05-24",
+   "days": 19.0,
+   "role": "validate"
+  }
+ ],
+ "lags_hours": [
+  1,
+  24,
+  168
+ ],
+ "features": [
+  "hour",
+  "dow",
+  "is_weekend",
+  "lag1",
+  "lag24",
+  "lag168",
+  "lag1h_ma3",
+  "cell_prior",
+  "cell (categorical)"
+ ],
+ "nb_alpha_by_fold": [
+  0.0682,
+  0.0817,
+  0.0965
+ ],
+ "poisson_pearson_chi2_over_df": [
+  1.732,
+  1.827,
+  2.021
+ ],
+ "pooled_metrics": [
+  {
+   "model": "gbdt_poisson",
+   "mae": 2.921043091277602,
+   "rmse": 9.061402119911538,
+   "poisson_deviance": 1.8429465185498224,
+   "pred_sum": 438189.1229324183,
+   "obs_sum": 441650.0,
+   "calibration": 0.9921637562151439,
+   "bias": -0.08432936324516838,
+   "pred_p999": 307.7880951991359,
+   "pred_max": 442.5400178428484
+  },
+  {
+   "model": "nb_glm",
+   "mae": 3.860023249939088,
+   "rmse": 16.328266338349163,
+   "poisson_deviance": 2.641913661539781,
+   "pred_sum": 455445.8901223929,
+   "obs_sum": 441650.0,
+   "calibration": 1.0312371563962253,
+   "bias": 0.33615716672497237,
+   "pred_p999": 531.9333550643969,
+   "pred_max": 1017.4123339028739
+  },
+  {
+   "model": "seasonal_naive",
+   "mae": 3.153935881476622,
+   "rmse": 8.587358367941382,
+   "poisson_deviance": 3.642497467703556,
+   "pred_sum": 414609.9357209937,
+   "obs_sum": 441650.0,
+   "calibration": 0.9387749025721582,
+   "bias": -0.6588709619640907,
+   "pred_p999": 278.2857142857143,
+   "pred_max": 366.14285714285717
+  }
+ ],
+ "best_model": "gbdt_poisson",
+ "best_model_name": "Gradient-boosted trees (Poisson)"
+}
