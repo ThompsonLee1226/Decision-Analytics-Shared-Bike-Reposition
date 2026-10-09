@@ -3,52 +3,52 @@
  "cells_center_inside_region": 11,
  "window_pad_km": 3.0,
  "window_cells": 137,
- "window_endpoint_share_pct": 99.124,
+ "window_endpoint_share_pct": 99.133,
  "window_complete": 6,
  "window_straddling": 14,
  "window_outside": 117,
  "net_flow_top": [
   {
    "cell": "wx4eqv",
-   "net_flow": 12387
+   "net_flow": 12432
   },
   {
    "cell": "wx4eqx",
-   "net_flow": 4629
+   "net_flow": 4641
   },
   {
    "cell": "wx4erj",
-   "net_flow": 1690
+   "net_flow": 1707
   },
   {
    "cell": "wx4ern",
-   "net_flow": 1341
+   "net_flow": 1366
   },
   {
    "cell": "wx4eqg",
-   "net_flow": 897
+   "net_flow": 894
   }
  ],
  "net_flow_bottom": [
   {
    "cell": "wx4eqt",
-   "net_flow": -4290
+   "net_flow": -4254
   },
   {
    "cell": "wx4eqz",
-   "net_flow": -2604
+   "net_flow": -2611
   },
   {
    "cell": "wx4equ",
-   "net_flow": -2165
+   "net_flow": -2200
   },
   {
    "cell": "wx4eqw",
-   "net_flow": -1714
+   "net_flow": -1797
   },
   {
    "cell": "wx4erm",
-   "net_flow": -1429
+   "net_flow": -1438
   }
  ],
  "hotspots": [
@@ -56,41 +56,41 @@
    "cell": "wx4eqt",
    "lat": 39.97650146484375,
    "lon": 116.3067626953125,
-   "n_departures": 102866,
-   "n_arrivals": 107156,
-   "net_flow": -4290
+   "n_departures": 104597,
+   "n_arrivals": 108851,
+   "net_flow": -4254
   },
   {
    "cell": "wx4eqw",
    "lat": 39.98199462890625,
    "lon": 116.3067626953125,
-   "n_departures": 87839,
-   "n_arrivals": 89553,
-   "net_flow": -1714
+   "n_departures": 88784,
+   "n_arrivals": 90581,
+   "net_flow": -1797
   },
   {
    "cell": "wx4eqy",
    "lat": 39.98199462890625,
    "lon": 116.3177490234375,
-   "n_departures": 78050,
-   "n_arrivals": 78924,
-   "net_flow": -874
+   "n_departures": 79184,
+   "n_arrivals": 80110,
+   "net_flow": -926
   },
   {
    "cell": "wx4eqv",
    "lat": 39.97650146484375,
    "lon": 116.3177490234375,
-   "n_departures": 71720,
-   "n_arrivals": 59333,
-   "net_flow": 12387
+   "n_departures": 72679,
+   "n_arrivals": 60247,
+   "net_flow": 12432
   },
   {
    "cell": "wx4erj",
    "lat": 39.97650146484375,
    "lon": 116.3287353515625,
-   "n_departures": 42968,
-   "n_arrivals": 41278,
-   "net_flow": 1690
+   "n_departures": 43561,
+   "n_arrivals": 41854,
+   "net_flow": 1707
   }
  ]
 }

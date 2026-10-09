@@ -6,7 +6,7 @@
 | **Output** | `trips_clean.csv.gz` — 658,304 rows (**98.57% retained**) |
 | **Removed** | 9,517 rows (1.4251%) |
 | **Period** | 2026-03-02 → 2026-05-24 · 84 days · 0 missing · **83 after cleaning** |
-| **Spatial scope** | `wx4e`, `wx4g` = 99.96% of trips |
+| **Spatial scope** | `wx4e`, `wx4g` — **99.86% of trips stay inside at both ends** (99.93% of endpoints) |
 
 ## Flag audit
 
@@ -47,8 +47,9 @@
 ## Findings
 
 - The file is structurally pristine: 0 unparseable timestamps, 0 invalid geohashes, 0 duplicated order_ids, 0 missing values. Cleaning is about anomaly triage, not repair.
-- `action_dt` is fully redundant with the date part of `start_time` (0 mismatches).
+- `action_dt` carries the same calendar day as `start_time` (0 date mismatches), so it is redundant with the derived `date` and is kept only for audit. It is not a text duplicate: `action_dt` is unpadded (`2026/3/2` vs `2026-03-02`), differing on 667,821 rows, so a string join against `date` matches nothing.
 - 5,835 zero-minute trips (0.8737%). 4,530 of them (77.635% of zero-minute rows) cross geohash cells, which is impossible at 8-char (~38 m) precision -- evidence that the cause is minute-level timestamp rounding collapsing sub-minute rides, not user error.
 - Before cleaning, duration is heavily right-skewed: median 7 min, p99 71 min, max 774 min (11,116 trips exceed 60 min). After cleaning the median is unchanged but the max falls to 180 min and the CV drops 1.1839 -> 1.1543.
 - 1 candidate anomaly day detected below 50% of its local baseline.
 - Cleaning removes 9,517 rows (1.4251%), leaving 658,304 for analysis.
+- Dropping the flagged day(s) leaves the cleaned window non-contiguous. Anything built on the cleaned date sequence -- a 24 h or 168 h lag, a day-wise train/test split -- is off by one day across the gap until the panel is reindexed onto the full calendar.

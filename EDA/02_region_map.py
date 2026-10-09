@@ -97,7 +97,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 
 XLSX = ROOT / "data_select_configure_zgc_20260909.xlsx"
-CELLS = HERE / "out" / "cell_summary.csv"
+CELLS = HERE / "out" / "cell_summary_keepzerodur_keepanomday.csv"
 OUT_HTML = HERE / "out" / "region_map.html"
 # Named for the plan's figure inventory (I1, #7) so a filename maps onto a
 # slide without a lookup table.  The whole out/ folder follows that rule.

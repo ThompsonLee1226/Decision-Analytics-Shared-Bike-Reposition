@@ -10,29 +10,11 @@ the imbalance.
     fig11  net flow per cell at 08:00 and 18:00, one shared diverging scale
     fig12  morning vs evening role reversal, cell by cell
 
-What the heat map plots, and why it is a ratio
-----------------------------------------------
-The plan asks for "departures - arrivals, averaged across the days, weekdays
-only, normalised per row".  Raw net flow cannot be normalised by a row sum --
-the quantity is signed, so the row sum is near zero and the ratio explodes.
-The normalisation that carries the same intent is to divide each cell-hour by
-that cell-hour's **gross flow**:
+
+cell-hour's **gross flow**:
 
     balance = (departures - arrivals) / (departures + arrivals)
 
-which is bounded in [-1, +1], has a literal reading ("this cell had 40% more
-departures than arrivals in that hour"), and makes a cell with 200 trips an
-hour comparable to one with 20,000.  Cells whose gross flow is under
-`MIN_GROSS` trips/day are **greyed out rather than coloured**: at one trip a
-day the sign of the balance is a coin flip, and a heat map that shades noise
-reads as structure.  The raw net-flow matrix is written alongside as
-`table_e1_cell_hour_netflow.csv` so nothing is lost.
-
-Why weekdays only
------------------
-§C2 shows the morning peak is a weekday structure.  Averaging weekends in would
-smear the very mirror-image pattern this figure exists to show, so weekends are
-excluded and the count of contributing days is printed in the title.
 
 Usage:
     python 07_spatiotemporal.py
@@ -54,7 +36,7 @@ import viz
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-TRIPS = OUT / "trips_clean.csv.gz"
+TRIPS = OUT / "trips_clean_keepzerodur_keepanomday.csv.gz"
 SUMM = OUT / "cell6_summary.csv"
 
 TOP_CELLS = 30            # the hotspot population §E1 and §H1 both use

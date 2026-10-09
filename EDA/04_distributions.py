@@ -43,7 +43,7 @@ import viz
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-TRIPS = OUT / "trips_clean.csv.gz"
+TRIPS = OUT / "trips_clean_keepzerodur_keepanomday.csv.gz"
 
 QUANTILES = [0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99]
 COVERAGE_TARGET = 0.80          # B4: how few cells carry 80% of the departures

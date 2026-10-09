@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T18:55:00",
+  "generated_at": "2026-10-09T16:52:04",
   "input": {
     "path": "D:\\霄霄\\THU\\Decision Analytics\\Dataset\\dataset_train_20260921_lsz.csv",
     "sha256": "03e1eaf108a3f2bad16cb5573c1404440a7284cd213239ec6853c557e5a850ba",
@@ -43,6 +43,23 @@
       "qc_anomaly_day",
       "qc_outside_window"
     ],
+    "clean_drop_flags_default": [
+      "qc_unparsed",
+      "qc_null_required",
+      "qc_dup_order",
+      "qc_bad_geohash",
+      "qc_neg_dur",
+      "qc_zero_dur",
+      "qc_speed_gt_30",
+      "qc_cross_region",
+      "qc_dur_gt_180",
+      "qc_anomaly_day",
+      "qc_outside_window"
+    ],
+    "keep_zero_dur_trips": false,
+    "keep_anomaly_days": false,
+    "write_flagged": false,
+    "output_tag": "",
     "clean_keep_flags": [
       "qc_dur_gt_60",
       "qc_same_geohash"
@@ -70,7 +87,8 @@
     },
     "action_dt_redundancy": {
       "mismatches_vs_start_time_date": 0,
-      "verdict": "redundant -- safe to drop"
+      "rows_whose_text_differs_from_padded_ymd": 667821,
+      "verdict": "redundant with `date` once parsed (retained -- this script drops no column; drop it in feature engineering)"
     },
     "n_rows": 667821
   },
@@ -147,32 +165,40 @@
   },
   "findings": [
     "The file is structurally pristine: 0 unparseable timestamps, 0 invalid geohashes, 0 duplicated order_ids, 0 missing values. Cleaning is about anomaly triage, not repair.",
-    "`action_dt` is fully redundant with the date part of `start_time` (0 mismatches).",
+    "`action_dt` carries the same calendar day as `start_time` (0 date mismatches), so it is redundant with the derived `date` and is kept only for audit. It is not a text duplicate: `action_dt` is unpadded (`2026/3/2` vs `2026-03-02`), differing on 667,821 rows, so a string join against `date` matches nothing.",
     "5,835 zero-minute trips (0.8737%). 4,530 of them (77.635% of zero-minute rows) cross geohash cells, which is impossible at 8-char (~38 m) precision -- evidence that the cause is minute-level timestamp rounding collapsing sub-minute rides, not user error.",
     "Before cleaning, duration is heavily right-skewed: median 7 min, p99 71 min, max 774 min (11,116 trips exceed 60 min). After cleaning the median is unchanged but the max falls to 180 min and the CV drops 1.1839 -> 1.1543.",
     "1 candidate anomaly day detected below 50% of its local baseline.",
-    "Cleaning removes 9,517 rows (1.4251%), leaving 658,304 for analysis."
+    "Cleaning removes 9,517 rows (1.4251%), leaving 658,304 for analysis.",
+    "Dropping the flagged day(s) leaves the cleaned window non-contiguous. Anything built on the cleaned date sequence -- a 24 h or 168 h lag, a day-wise train/test split -- is off by one day across the gap until the panel is reindexed onto the full calendar."
   ],
   "region": {
     "prefix_len": 4,
     "min_share": 0.001,
+    "share_basis": "start and end endpoints pooled (2 x n_rows)",
     "kept_prefixes": [
       "wx4e",
       "wx4g"
     ],
-    "kept_share": 0.999552,
-    "dropped_prefixes": {
-      "wx4d": 197,
-      "wx4f": 49,
-      "wx4s": 30,
-      "wx4u": 12,
+    "kept_endpoint_share": 0.999286,
+    "trips_both_endpoints_inside": 0.998573,
+    "dropped_prefix_endpoint_counts": {
+      "wx4d": 681,
+      "wx4f": 146,
+      "wx4s": 80,
+      "wx4u": 28,
       "wwgq": 4,
+      "7zzz": 3,
       "wqj7": 2,
-      "weby": 1,
       "wrnp": 1,
+      "weby": 1,
       "ww8p": 1,
       "wecp": 1,
-      "wxrv": 1
+      "wxrv": 1,
+      "wx51": 1,
+      "wtsm": 1,
+      "wm3v": 1,
+      "wwkr": 1
     }
   },
   "anomaly_days": {
@@ -228,68 +254,79 @@
     {
       "flag": "qc_unparsed",
       "tier": 0,
-      "rows_dropped": 0,
-      "pct_dropped": 0.0
+      "applied": true,
+      "rows_matching_flag": 0,
+      "pct_matching_flag": 0.0
     },
     {
       "flag": "qc_null_required",
       "tier": 0,
-      "rows_dropped": 0,
-      "pct_dropped": 0.0
+      "applied": true,
+      "rows_matching_flag": 0,
+      "pct_matching_flag": 0.0
     },
     {
       "flag": "qc_dup_order",
       "tier": 0,
-      "rows_dropped": 0,
-      "pct_dropped": 0.0
+      "applied": true,
+      "rows_matching_flag": 0,
+      "pct_matching_flag": 0.0
     },
     {
       "flag": "qc_bad_geohash",
       "tier": 0,
-      "rows_dropped": 0,
-      "pct_dropped": 0.0
+      "applied": true,
+      "rows_matching_flag": 0,
+      "pct_matching_flag": 0.0
     },
     {
       "flag": "qc_neg_dur",
       "tier": 1,
-      "rows_dropped": 0,
-      "pct_dropped": 0.0
+      "applied": true,
+      "rows_matching_flag": 0,
+      "pct_matching_flag": 0.0
     },
     {
       "flag": "qc_zero_dur",
       "tier": 1,
-      "rows_dropped": 5835,
-      "pct_dropped": 0.8737
+      "applied": true,
+      "rows_matching_flag": 5835,
+      "pct_matching_flag": 0.8737
     },
     {
       "flag": "qc_speed_gt_30",
       "tier": 1,
-      "rows_dropped": 329,
-      "pct_dropped": 0.0493
+      "applied": true,
+      "rows_matching_flag": 329,
+      "pct_matching_flag": 0.0493
     },
     {
       "flag": "qc_cross_region",
       "tier": 1,
-      "rows_dropped": 953,
-      "pct_dropped": 0.1427
+      "applied": true,
+      "rows_matching_flag": 953,
+      "pct_matching_flag": 0.1427
     },
     {
       "flag": "qc_dur_gt_180",
       "tier": 2,
-      "rows_dropped": 49,
-      "pct_dropped": 0.0073
+      "applied": true,
+      "rows_matching_flag": 49,
+      "pct_matching_flag": 0.0073
     },
     {
       "flag": "qc_anomaly_day",
       "tier": 2,
-      "rows_dropped": 2463,
-      "pct_dropped": 0.3688
+      "applied": true,
+      "rows_matching_flag": 2463,
+      "pct_matching_flag": 0.3688
     },
     {
       "flag": "qc_outside_window",
       "tier": 2,
-      "rows_dropped": 0,
-      "pct_dropped": 0.0
+      "applied": true,
+      "rows_matching_flag": 0,
+      "pct_matching_flag": 0.0
     }
   ],
   "cleaning_result": {

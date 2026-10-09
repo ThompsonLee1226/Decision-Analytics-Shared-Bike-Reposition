@@ -1,31 +1,31 @@
 cell,net_am,net_pm,volume,role,reading
-wx4eqw,-159.733,132.617,177392,reversed,"residential (fills AM, drains PM)"
-wx4ern,-24.322,23.139,72445,reversed,"residential (fills AM, drains PM)"
-wx4erp,-11.267,4.767,11708,reversed,"residential (fills AM, drains PM)"
-wx4equ,-3.739,-2.6,70383,same,
-wx4eqx,-3.056,13.817,25569,reversed,"residential (fills AM, drains PM)"
-wx4eqd,-1.722,0.194,4362,one-sided,
-wx4ewb,-1.45,1.206,5398,reversed,"residential (fills AM, drains PM)"
-wx4ex0,-1.383,0.328,4612,one-sided,
-wx4eqf,-0.728,0.306,3116,flat,
-wx4eqc,-0.567,-0.783,3347,flat,
-wx4erm,-0.517,-3.261,29297,one-sided,
-wx4er7,-0.5,1.006,9759,one-sided,
-wx4erk,-0.206,1.744,16007,one-sided,
-wx4ew8,-0.05,2.428,4808,one-sided,
-wx4eqy,0.206,-5.522,156974,one-sided,
-wx4eq9,0.294,-0.283,4070,flat,
-wx4ert,0.372,-0.311,3721,flat,
-wx4err,0.717,-0.883,3210,flat,
-wx4er5,1.139,-0.167,13785,one-sided,
-wx4ex2,1.194,-2.539,3340,reversed,"workplace (drains AM, fills PM)"
-wx4erq,1.506,-1.161,6697,reversed,"workplace (drains AM, fills PM)"
-wx4eqm,1.672,-1.533,3900,reversed,"workplace (drains AM, fills PM)"
-wx4eqg,4.622,-0.45,29487,one-sided,
-wx4eqz,7.261,-9.689,30118,reversed,"workplace (drains AM, fills PM)"
-wx4eqs,9.861,-5.667,48082,reversed,"workplace (drains AM, fills PM)"
-wx4erh,13.806,-8.056,43582,reversed,"workplace (drains AM, fills PM)"
-wx4eqe,15.728,-9.5,43679,reversed,"workplace (drains AM, fills PM)"
-wx4eqv,18.95,8.167,131053,same,
-wx4erj,28.906,-14.556,84246,reversed,"workplace (drains AM, fills PM)"
-wx4eqt,86.228,-101.489,210022,reversed,"workplace (drains AM, fills PM)"
+wx4eqw,-159.717,132.622,179365,reversed,"residential (fills AM, drains PM)"
+wx4ern,-24.317,23.15,73404,reversed,"residential (fills AM, drains PM)"
+wx4erp,-11.267,4.761,11768,reversed,"residential (fills AM, drains PM)"
+wx4equ,-3.756,-2.611,71288,same,
+wx4eqx,-3.056,13.817,25789,reversed,"residential (fills AM, drains PM)"
+wx4eqd,-1.722,0.189,4376,one-sided,
+wx4ewb,-1.45,1.206,5414,reversed,"residential (fills AM, drains PM)"
+wx4ex0,-1.383,0.328,4629,one-sided,
+wx4eqf,-0.728,0.306,3129,flat,
+wx4eqc,-0.567,-0.783,3359,flat,
+wx4erm,-0.506,-3.283,29706,one-sided,
+wx4er7,-0.5,1.006,9875,one-sided,
+wx4erk,-0.211,1.739,16247,one-sided,
+wx4ew8,-0.05,2.428,4828,one-sided,
+wx4eqy,0.233,-5.522,159294,one-sided,
+wx4eq9,0.294,-0.283,4078,flat,
+wx4ert,0.372,-0.311,3728,flat,
+wx4err,0.717,-0.883,3233,flat,
+wx4er5,1.139,-0.139,13893,one-sided,
+wx4ex2,1.194,-2.539,3351,reversed,"workplace (drains AM, fills PM)"
+wx4erq,1.483,-1.144,6768,reversed,"workplace (drains AM, fills PM)"
+wx4eqm,1.672,-1.533,3911,reversed,"workplace (drains AM, fills PM)"
+wx4eqg,4.622,-0.461,29780,one-sided,
+wx4eqz,7.239,-9.706,30439,reversed,"workplace (drains AM, fills PM)"
+wx4eqs,9.867,-5.656,48653,reversed,"workplace (drains AM, fills PM)"
+wx4erh,13.817,-8.072,44160,reversed,"workplace (drains AM, fills PM)"
+wx4eqe,15.728,-9.489,44260,reversed,"workplace (drains AM, fills PM)"
+wx4eqv,18.944,8.156,132926,same,
+wx4erj,28.906,-14.55,85415,reversed,"workplace (drains AM, fills PM)"
+wx4eqt,86.206,-101.472,213448,reversed,"workplace (drains AM, fills PM)"

@@ -12,7 +12,9 @@ Every quality test is recorded as an independent boolean column (`qc_*`) that
 *never* deletes anything.  Filtering is then a composable, reversible decision
 built from those flags.  This keeps the audit trail ("how many rows were
 removed, for what reason") intact, which is exactly what HW3 s.2 asks us to
-report.
+report.  The input file is read-only -- no column is overwritten and no value
+is edited in place -- so two cleaning policies can be generated side by side
+and compared.
 
 Flags are grouped into three tiers by the *nature* of the question they answer:
 
@@ -23,15 +25,22 @@ Flags are grouped into three tiers by the *nature* of the question they answer:
 
 Tier 0/1 are judgements about whether a record can be trusted at all.
 Tier 2 is a judgement about what we are studying -- a 12.9 h trip is probably
-real, it is just not a typical operating-day observation.  Both are dropped in
-`trips_clean.csv` (per project decision), but they remain visible and
-separable in `trips_flagged.csv`.
+real, it is just not a typical operating-day observation.
 
-Outputs (into EDA/out/):
-    trips_flagged.csv   all rows + derived columns + qc_* flags   (nothing lost)
-    trips_clean.csv     main analysis / modelling input (all tiers dropped)
-    cell_summary.csv    geohash8 -> lat/lon + departure/arrival/net counts
-    cleaning_report.json  per-step row counts, flag tallies, before/after stats
+`CLEAN_DROP_FLAGS` *is* the policy: a flag listed there removes its rows.  A
+flag in `CLEAN_KEEP_FLAGS` is still computed and still written out, it just
+never removes anything.  The two switches in CONFIG ("Cleaning-policy
+switches") release a flag from the drop set -- the flag is still evaluated and
+still recorded, it simply stops filtering.
+
+Outputs (into EDA/out/; `{tag}` is empty for the default policy, so an
+unflagged run reproduces the released filenames exactly):
+    trips_clean{tag}.csv.gz      main analysis / modelling input
+    cell_summary{tag}.csv        geohash8 -> lat/lon + departure/arrival/net counts
+    cleaning_report{tag}.json    per-step row counts, flag tallies, before/after stats
+    cleaning_summary{tag}.md     one-page rendering of the report, for slides
+    trips_flagged{tag}.csv       opt-in (WRITE_FLAGGED / --write-flagged): every
+                                 row + derived columns + qc_* flags, nothing dropped
 
 Dependencies: pandas, numpy.  Geohash decoding is implemented here in pure
 Python (no `pygeohash` / `geohash` package required).
@@ -39,6 +48,20 @@ Python (no `pygeohash` / `geohash` package required).
 Usage:
     python 01_data_cleaning.py
     python 01_data_cleaning.py --input <path> --outdir <dir>
+
+    # the default policy -- byte-for-byte the released trips_clean.csv.gz
+    python 01_data_cleaning.py
+
+    # a wider dataset: keep the zero-minute trips and the collapsed day
+    python 01_data_cleaning.py --keep-zero-dur --keep-anomaly-day
+        -> out/trips_clean_keepzerodur_keepanomday.csv.gz
+
+    # one switch at a time, or name the output yourself
+    python 01_data_cleaning.py --keep-anomaly-day
+    python 01_data_cleaning.py --keep-zero-dur --tag v2
+
+    # also emit the per-row audit trail
+    python 01_data_cleaning.py --write-flagged
 """
 
 from __future__ import annotations
@@ -90,7 +113,7 @@ CELL_LEVELS = (4, 5, 6)
 STUDY_START = None
 STUDY_END = None
 
-# --- What `trips_clean.csv` drops ------------------------------------------
+# --- What the clean output drops -------------------------------------------
 # This single list IS the cleaning policy.  Edit it to change what survives.
 CLEAN_DROP_FLAGS = [
     # Tier 0 -- structural / I/O
@@ -110,6 +133,29 @@ TIER_OF_FLAG = {
     "qc_dur_gt_180": 2, "qc_anomaly_day": 2, "qc_outside_window": 2,
     "qc_dur_gt_60": None, "qc_same_geohash": None,
 }
+
+# --- Cleaning-policy switches ----------------------------------------------
+# Both default to the policy that produced the released `trips_clean.csv.gz`,
+# so an unflagged run reproduces that file byte-for-byte.  Turning either on
+# *widens* the output.  Neither edits the input, so both policies can be
+# generated side by side and compared -- the output filenames are tagged so a
+# wider run can never overwrite the released one.
+#
+#   KEEP_ZERO_DUR_TRIPS  Minute-level truncation collapses sub-minute rides to
+#                        0 minutes (77.6% of them cross an ~38 m geohash cell,
+#                        which is impossible).  The trips are real demand; only
+#                        their duration is unmeasurable.  `implied_speed_kmh`
+#                        stays NaN for them either way, so the speed rule does
+#                        not double-count them.
+#
+#   KEEP_ANOMALY_DAYS    A day at ~23% of its local baseline (2026-05-17) is a
+#                        real demand *regime* -- rain, holiday or outage --
+#                        not a data fault.  A forecaster usually wants it in.
+#                        Dropping it also punches a hole in the calendar, so
+#                        any 24 h / 168 h lag built on the cleaned dates is
+#                        silently off by one day across the gap.
+KEEP_ZERO_DUR_TRIPS = False
+KEEP_ANOMALY_DAYS = False
 
 # --- Output shape ----------------------------------------------------------
 # The per-row flagged file is ~260 MB and is exactly reproducible by re-running
@@ -226,6 +272,31 @@ def pct(n: int, total: int) -> float:
     return round(100.0 * n / total, 4) if total else 0.0
 
 
+def effective_drop_flags(keep_zero_dur: bool, keep_anomaly_days: bool) -> list[str]:
+    """`CLEAN_DROP_FLAGS` minus whichever optional flags a switch releases.
+
+    The released flag is still computed and still written out -- it just stops
+    removing rows.  Guarded lookups so this survives someone editing the base
+    list in CONFIG.
+    """
+    drop = list(CLEAN_DROP_FLAGS)
+    for flag, released in (("qc_zero_dur", keep_zero_dur),
+                           ("qc_anomaly_day", keep_anomaly_days)):
+        if released and flag in drop:
+            drop.remove(flag)
+    return drop
+
+
+def policy_tag(keep_zero_dur: bool, keep_anomaly_days: bool) -> str:
+    """Filename tag for a non-default policy; '' for the default one."""
+    parts = []
+    if keep_zero_dur:
+        parts.append("keepzerodur")
+    if keep_anomaly_days:
+        parts.append("keepanomday")
+    return "_".join(parts)
+
+
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
@@ -288,9 +359,18 @@ def structural_qc(df: pd.DataFrame, report: dict) -> pd.DataFrame:
     if "action_dt" in df.columns:
         act = pd.to_datetime(df["action_dt"], format="%Y/%m/%d", errors="coerce")
         mismatch = (act.dt.normalize() != start_dt.dt.normalize()).sum()
+        # `action_dt` is written unpadded (`2026/3/2`), so it does NOT equal the
+        # canonical `%Y/%m/%d` text of the same day -- comparing the two as
+        # strings matches nothing, and any join on the text form silently fails.
+        unpadded = int(
+            (df["action_dt"].str.strip() != start_dt.dt.strftime("%Y/%m/%d")).sum()
+        )
         report["structural_checks"]["action_dt_redundancy"] = {
             "mismatches_vs_start_time_date": int(mismatch),
-            "verdict": "redundant -- safe to drop" if mismatch == 0 else "NOT redundant",
+            "rows_whose_text_differs_from_padded_ymd": unpadded,
+            "verdict": ("redundant with `date` once parsed (retained -- this script "
+                        "drops no column; drop it in feature engineering)"
+                        if mismatch == 0 else "NOT redundant"),
         }
     report["structural_checks"]["n_rows"] = n
 
@@ -308,8 +388,13 @@ def add_derived(df: pd.DataFrame) -> pd.DataFrame:
     df["minute"] = df["_start_dt"].dt.minute.astype("Int16")
     df["dow"] = df["_start_dt"].dt.dayofweek.astype("Int16")          # 0 = Monday
     df["is_weekend"] = df["dow"] >= 5
+    # 15-minute slot index 0..95.  Computed through float so an unparseable
+    # timestamp yields NaN rather than an integer 0, which would read as
+    # midnight.  The column is therefore float-typed, unlike `hour` / `minute` /
+    # `slot_60`; harmless (0 such rows today) but worth knowing before a join.
     df["slot_15"] = (df["hour"].astype("float") * 60 + df["minute"]) // 15
-    df["slot_60"] = df["hour"]                                        # hourly interval
+    # Alias of `hour` (0..23), kept so every slot_* granularity shares a prefix.
+    df["slot_60"] = df["hour"]
 
     # -- space: geohash prefix truncation = tunable cell size ---------------
     for lvl in CELL_LEVELS:
@@ -352,24 +437,40 @@ def add_flags(df: pd.DataFrame, report: dict) -> pd.DataFrame:
     df["qc_speed_gt_30"] = df["implied_speed_kmh"] > MAX_SPEED_KMH
 
     # Operating region = the set of geohash prefixes that actually matter.
-    pref = df["start_geohash"].str.slice(0, REGION_PREFIX_LEN)
-    pref_counts = pref.value_counts()
+    # Share is pooled over *both* endpoints: a prefix that only ever appears as a
+    # destination is still part of the operating footprint, and scoring departures
+    # alone would silently drop it.  (On this dataset the kept set is unchanged --
+    # wx4e/wx4g dominate both ways -- but the definition is now what the
+    # threshold claims to mean.)
+    pref_all = pd.concat(
+        [df["start_geohash"].str.slice(0, REGION_PREFIX_LEN),
+         df["end_geohash"].str.slice(0, REGION_PREFIX_LEN)],
+        ignore_index=True,
+    )
+    pref_counts = pref_all.value_counts()
     share = pref_counts / pref_counts.sum()
     keep_mask = share >= MIN_REGION_SHARE
     keep_prefixes = sorted(share[keep_mask].index.tolist())
-    report["region"] = {
-        "prefix_len": REGION_PREFIX_LEN,
-        "min_share": MIN_REGION_SHARE,
-        "kept_prefixes": keep_prefixes,
-        "kept_share": round(float(share[keep_mask].sum()), 6),
-        "dropped_prefixes": {
-            str(k): int(pref_counts[k]) for k in share[~keep_mask].index
-        },
-    }
-    df["qc_cross_region"] = ~(
+
+    in_region = (
         df["start_geohash"].str.slice(0, REGION_PREFIX_LEN).isin(keep_prefixes)
         & df["end_geohash"].str.slice(0, REGION_PREFIX_LEN).isin(keep_prefixes)
     )
+    df["qc_cross_region"] = ~in_region
+    report["region"] = {
+        "prefix_len": REGION_PREFIX_LEN,
+        "min_share": MIN_REGION_SHARE,
+        "share_basis": "start and end endpoints pooled (2 x n_rows)",
+        "kept_prefixes": keep_prefixes,
+        # Share of *endpoints* in a kept prefix -- not the share of trips that
+        # stay inside.  That is `trips_both_endpoints_inside` below; the two
+        # differ whenever a trip leaves the region.
+        "kept_endpoint_share": round(float(share[keep_mask].sum()), 6),
+        "trips_both_endpoints_inside": round(float(in_region.mean()), 6),
+        "dropped_prefix_endpoint_counts": {
+            str(k): int(pref_counts[k]) for k in share[~keep_mask].index
+        },
+    }
 
     # -- Tier 2: atypical but plausible -------------------------------------
     df["qc_dur_gt_60"] = dur > 60
@@ -439,6 +540,12 @@ def render_summary_md(report: dict) -> str:
     cr = report["cleaning_result"]
     cov = report["coverage"]
     fs = report["flags_summary"]
+    reg = report["region"]
+    cfg = report["config"]
+
+    drop_flags = cfg["clean_drop_flags"]
+    released = sorted(set(cfg["clean_drop_flags_default"]) - set(drop_flags))
+    out_name = Path(report["outputs"]["trips_clean"]["path"]).name
 
     L: list[str] = []
     A = L.append
@@ -447,27 +554,40 @@ def render_summary_md(report: dict) -> str:
     A("| | |")
     A("|---|---|")
     A(f"| **Input** | `{Path(report['input']['path']).name}` — {n:,} rows |")
-    A(f"| **Output** | `trips_clean.csv.gz` — {cr['rows_out']:,} rows "
+    A(f"| **Output** | `{out_name}` — {cr['rows_out']:,} rows "
       f"(**{100 - cr['pct_dropped']:.2f}% retained**) |")
     A(f"| **Removed** | {cr['rows_dropped_unique']:,} rows ({cr['pct_dropped']}%) |")
     A(f"| **Period** | {cov['start_time_range'][0][:10]} → "
       f"{cov['start_time_range'][1][:10]} · {cov['distinct_dates']} days · "
       f"{cov['missing_dates']} missing · **{cov['clean_distinct_dates']} after cleaning** |")
+    # Two numbers on purpose: the share of endpoints in a kept prefix is NOT the
+    # share of trips that stay inside, and only the second one bounds a
+    # within-region analysis.
     A(f"| **Spatial scope** | "
-      f"{', '.join('`' + p + '`' for p in report['region']['kept_prefixes'])} "
-      f"= {100 * report['region']['kept_share']:.2f}% of trips |")
+      f"{', '.join('`' + p + '`' for p in reg['kept_prefixes'])} — "
+      f"**{100 * reg['trips_both_endpoints_inside']:.2f}% of trips stay inside at both ends** "
+      f"({100 * reg['kept_endpoint_share']:.2f}% of endpoints) |")
     A("")
+
+    if released:
+        A(f"> **Non-default policy** — output tagged `{cfg['output_tag']}`. "
+          f"Released from the drop set (still flagged and reported, no longer "
+          f"removed): {', '.join('`' + f + '`' for f in released)}.")
+        A("")
 
     A("## Flag audit")
     A("")
     A("| Tier | Flag | Rows | % | Disposition |")
     A("|:--:|---|---:|---:|---|")
-    for f in CLEAN_DROP_FLAGS:
+    for f in drop_flags:
         d = report["flags"][f]
         A(f"| {TIER_OF_FLAG[f]} | `{f}` | {d['n']:,} | {d['pct']:.3f} | dropped |")
     for f in CLEAN_KEEP_FLAGS:
         d = report["flags"][f]
         A(f"| — | `{f}` | {d['n']:,} | {d['pct']:.3f} | kept |")
+    for f in released:
+        d = report["flags"][f]
+        A(f"| {TIER_OF_FLAG[f]} | `{f}` | {d['n']:,} | {d['pct']:.3f} | **kept (switch)** |")
     A(f"| | **dropped, unique** | **{cr['rows_dropped_unique']:,}** "
       f"| **{cr['pct_dropped']}** | |")
     A("")
@@ -517,7 +637,26 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Clean the bike-sharing trip dataset.")
     ap.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     ap.add_argument("--outdir", type=Path, default=DEFAULT_OUTDIR)
+    ap.add_argument("--keep-zero-dur", action="store_true",
+                    help="keep 0-minute trips (default: dropped, they are "
+                         "minute-truncation artefacts)")
+    ap.add_argument("--keep-anomaly-day", action="store_true",
+                    help="keep days below ANOMALY_DAY_REL of their local "
+                         "baseline (default: dropped)")
+    ap.add_argument("--write-flagged", action="store_true",
+                    help="also write the per-row audit trail, nothing dropped")
+    ap.add_argument("--tag", default=None,
+                    help="suffix for the output filenames. Defaults to a tag "
+                         "derived from the policy, empty for the default policy, "
+                         "so an unflagged run reproduces the released filenames")
     args = ap.parse_args(argv)
+
+    keep_zero = bool(args.keep_zero_dur or KEEP_ZERO_DUR_TRIPS)
+    keep_anom = bool(args.keep_anomaly_day or KEEP_ANOMALY_DAYS)
+    tag = args.tag if args.tag is not None else policy_tag(keep_zero, keep_anom)
+    tag_suffix = f"_{tag}" if tag else ""
+    drop_flags = effective_drop_flags(keep_zero, keep_anom)
+    write_flagged = bool(args.write_flagged or WRITE_FLAGGED)
 
     inp: Path = args.input
     outdir: Path = args.outdir
@@ -538,7 +677,12 @@ def main(argv=None) -> int:
             "min_region_share": MIN_REGION_SHARE,
             "cell_levels": list(CELL_LEVELS),
             "study_window": [STUDY_START, STUDY_END],
-            "clean_drop_flags": CLEAN_DROP_FLAGS,
+            "clean_drop_flags": drop_flags,
+            "clean_drop_flags_default": list(CLEAN_DROP_FLAGS),
+            "keep_zero_dur_trips": keep_zero,
+            "keep_anomaly_days": keep_anom,
+            "write_flagged": write_flagged,
+            "output_tag": tag,
             "clean_keep_flags": CLEAN_KEEP_FLAGS,
         },
         "structural_checks": {},
@@ -576,7 +720,7 @@ def main(argv=None) -> int:
     }
 
     # ---- apply the cleaning policy ----------------------------------------
-    drop_mask = df[CLEAN_DROP_FLAGS].any(axis=1)
+    drop_mask = df[drop_flags].any(axis=1)
     clean = df.loc[~drop_mask].copy()
 
     report["duration_before_cleaning"] = duration_stats(df["duration_min"], "all rows")
@@ -586,8 +730,9 @@ def main(argv=None) -> int:
         {
             "flag": f,
             "tier": TIER_OF_FLAG[f],
-            "rows_dropped": int(df[f].sum()),
-            "pct_dropped": pct(int(df[f].sum()), n),
+            "applied": f in drop_flags,
+            "rows_matching_flag": int(df[f].sum()),
+            "pct_matching_flag": pct(int(df[f].sum()), n),
         }
         for f in CLEAN_DROP_FLAGS
     ]
@@ -628,8 +773,12 @@ def main(argv=None) -> int:
         f"unparseable timestamps, {report['structural_checks']['invalid_geohashes']} invalid geohashes, "
         f"{report['structural_checks']['duplicate_order_ids']['rows_affected']} duplicated order_ids, "
         f"0 missing values. Cleaning is about anomaly triage, not repair.",
-        f"`action_dt` is fully redundant with the date part of `start_time` "
-        f"({report['structural_checks']['action_dt_redundancy']['mismatches_vs_start_time_date']} mismatches).",
+        f"`action_dt` carries the same calendar day as `start_time` "
+        f"({report['structural_checks']['action_dt_redundancy']['mismatches_vs_start_time_date']} date mismatches), "
+        f"so it is redundant with the derived `date` and is kept only for audit. It is not a "
+        f"text duplicate: `action_dt` is unpadded (`2026/3/2` vs `2026-03-02`), differing on "
+        f"{report['structural_checks']['action_dt_redundancy']['rows_whose_text_differs_from_padded_ymd']:,} rows, "
+        f"so a string join against `date` matches nothing.",
         f"{zd:,} zero-minute trips ({pct(zd, n)}%). {zd_cross:,} of them "
         f"({pct(zd_cross, zd)}% of zero-minute rows) cross geohash cells, which is impossible at "
         f"8-char (~38 m) precision -- evidence that the cause is minute-level timestamp "
@@ -651,16 +800,34 @@ def main(argv=None) -> int:
         f"{report['cleaning_result']['rows_out']:,} for analysis.",
     ]
 
+    # Policy overrides are stated in the findings rather than left for the
+    # reader to infer from the row count.
+    released = sorted(set(CLEAN_DROP_FLAGS) - set(drop_flags))
+    if released:
+        report["findings"].append(
+            f"Policy override -- {', '.join('`' + f + '`' for f in released)} "
+            f"released from the drop set: still computed, still reported, no "
+            f"longer removing rows. {report['cleaning_result']['rows_out']:,} rows "
+            f"written to trips_clean{tag_suffix}.csv.gz."
+        )
+    if not keep_anom and report["anomaly_days"]["n_flagged"]:
+        report["findings"].append(
+            "Dropping the flagged day(s) leaves the cleaned window "
+            "non-contiguous. Anything built on the cleaned date sequence -- a "
+            "24 h or 168 h lag, a day-wise train/test split -- is off by one day "
+            "across the gap until the panel is reindexed onto the full calendar."
+        )
+
     # ---- write outputs -----------------------------------------------------
     print("[5/6] writing outputs ...")
     drop_cols = ["_start_dt", "_end_dt"]
     clean_out = clean.drop(columns=drop_cols)
     suffix = ".csv.gz" if CLEAN_COMPRESSION else ".csv"
 
-    p_clean = outdir / f"trips_clean{suffix}"
-    p_cells = outdir / "cell_summary.csv"
-    p_report = outdir / "cleaning_report.json"
-    p_summary = outdir / "cleaning_summary.md"
+    p_clean = outdir / f"trips_clean{tag_suffix}{suffix}"
+    p_cells = outdir / f"cell_summary{tag_suffix}.csv"
+    p_report = outdir / f"cleaning_report{tag_suffix}.json"
+    p_summary = outdir / f"cleaning_summary{tag_suffix}.md"
 
     clean_out.to_csv(p_clean, index=False, encoding="utf-8",
                      compression=CLEAN_COMPRESSION)
@@ -673,8 +840,8 @@ def main(argv=None) -> int:
         "cell_summary": {"path": str(p_cells), "rows": int(len(cells))},
     }
 
-    if WRITE_FLAGGED:
-        p_flagged = outdir / "trips_flagged.csv"
+    if write_flagged:
+        p_flagged = outdir / f"trips_flagged{tag_suffix}.csv"
         flagged_out = df.drop(columns=drop_cols)
         flagged_out.to_csv(p_flagged, index=False, encoding="utf-8")
         report["outputs"]["trips_flagged"] = {
@@ -696,12 +863,23 @@ def main(argv=None) -> int:
     # ---- console summary ---------------------------------------------------
     print("[6/6] done.\n")
     print("=" * 74)
+    print(f"POLICY   keep_zero_dur={keep_zero}  keep_anomaly_days={keep_anom}"
+          f"   tag='{tag}'")
+    print(f"OUTPUT   {p_clean.name}")
+    print("=" * 74)
     print("FLAG TALLIES")
     print("=" * 74)
     for c in flag_cols:
         f = report["flags"][c]
-        mark = "DROP" if c in CLEAN_DROP_FLAGS else "keep"
-        print(f"  {mark}  {c:<20} {f['n']:>9,}  {f['pct']:>7.3f}%")
+        if c in drop_flags:
+            mark = "DROP"
+        elif c in CLEAN_DROP_FLAGS:
+            mark = "KEPT"            # released by a policy switch
+        else:
+            mark = "keep"
+        print(f"  {mark:<6}{c:<20} {f['n']:>9,}  {f['pct']:>7.3f}%")
+    if released:
+        print("  ('KEPT' = released by a policy switch: flagged, not removed)")
     print("-" * 74)
     print(f"  rows in        : {n:,}")
     print(f"  rows dropped   : {report['cleaning_result']['rows_dropped_unique']:,} "

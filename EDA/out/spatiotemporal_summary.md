@@ -5,7 +5,7 @@
 
 Population: the **top 30 L6 cells by volume**, of which **11 lie
 inside the study area**. Fig 10 uses the 60 weekdays only (§C2 shows the
-morning peak is a weekday structure); figs 11–12 use all 83 days.
+morning peak is a weekday structure); figs 11–12 use all 84 days.
 
 ## E1 — Cell × hour balance (the lead figure)
 
@@ -64,33 +64,33 @@ would each service these cells wrongly for half the day.
 
 | cell | volume | morning net | evening net | role | reading |
 |---|---:|---:|---:|---|---|
-| `wx4eqw` | 177,392 | -159.7 | +132.6 | reversed | residential (fills AM, drains PM) |
-| `wx4ern` | 72,445 | -24.3 | +23.1 | reversed | residential (fills AM, drains PM) |
-| `wx4erp` | 11,708 | -11.3 | +4.8 | reversed | residential (fills AM, drains PM) |
-| `wx4equ` | 70,383 | -3.7 | -2.6 | same | — |
-| `wx4eqx` | 25,569 | -3.1 | +13.8 | reversed | residential (fills AM, drains PM) |
-| `wx4eqd` | 4,362 | -1.7 | +0.2 | one-sided | — |
-| `wx4ewb` | 5,398 | -1.4 | +1.2 | reversed | residential (fills AM, drains PM) |
-| `wx4ex0` | 4,612 | -1.4 | +0.3 | one-sided | — |
-| `wx4eqf` | 3,116 | -0.7 | +0.3 | flat | — |
-| `wx4eqc` | 3,347 | -0.6 | -0.8 | flat | — |
-| `wx4erm` | 29,297 | -0.5 | -3.3 | one-sided | — |
-| `wx4er7` | 9,759 | -0.5 | +1.0 | one-sided | — |
-| `wx4erk` | 16,007 | -0.2 | +1.7 | one-sided | — |
-| `wx4ew8` | 4,808 | -0.1 | +2.4 | one-sided | — |
-| `wx4eqy` | 156,974 | +0.2 | -5.5 | one-sided | — |
-| `wx4eq9` | 4,070 | +0.3 | -0.3 | flat | — |
-| `wx4ert` | 3,721 | +0.4 | -0.3 | flat | — |
-| `wx4err` | 3,210 | +0.7 | -0.9 | flat | — |
-| `wx4er5` | 13,785 | +1.1 | -0.2 | one-sided | — |
-| `wx4ex2` | 3,340 | +1.2 | -2.5 | reversed | workplace (drains AM, fills PM) |
-| `wx4erq` | 6,697 | +1.5 | -1.2 | reversed | workplace (drains AM, fills PM) |
-| `wx4eqm` | 3,900 | +1.7 | -1.5 | reversed | workplace (drains AM, fills PM) |
-| `wx4eqg` | 29,487 | +4.6 | -0.4 | one-sided | — |
-| `wx4eqz` | 30,118 | +7.3 | -9.7 | reversed | workplace (drains AM, fills PM) |
-| `wx4eqs` | 48,082 | +9.9 | -5.7 | reversed | workplace (drains AM, fills PM) |
-| `wx4erh` | 43,582 | +13.8 | -8.1 | reversed | workplace (drains AM, fills PM) |
-| `wx4eqe` | 43,679 | +15.7 | -9.5 | reversed | workplace (drains AM, fills PM) |
-| `wx4eqv` | 131,053 | +18.9 | +8.2 | same | — |
-| `wx4erj` | 84,246 | +28.9 | -14.6 | reversed | workplace (drains AM, fills PM) |
-| `wx4eqt` | 210,022 | +86.2 | -101.5 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqw` | 179,365 | -159.7 | +132.6 | reversed | residential (fills AM, drains PM) |
+| `wx4ern` | 73,404 | -24.3 | +23.2 | reversed | residential (fills AM, drains PM) |
+| `wx4erp` | 11,768 | -11.3 | +4.8 | reversed | residential (fills AM, drains PM) |
+| `wx4equ` | 71,288 | -3.8 | -2.6 | same | — |
+| `wx4eqx` | 25,789 | -3.1 | +13.8 | reversed | residential (fills AM, drains PM) |
+| `wx4eqd` | 4,376 | -1.7 | +0.2 | one-sided | — |
+| `wx4ewb` | 5,414 | -1.4 | +1.2 | reversed | residential (fills AM, drains PM) |
+| `wx4ex0` | 4,629 | -1.4 | +0.3 | one-sided | — |
+| `wx4eqf` | 3,129 | -0.7 | +0.3 | flat | — |
+| `wx4eqc` | 3,359 | -0.6 | -0.8 | flat | — |
+| `wx4erm` | 29,706 | -0.5 | -3.3 | one-sided | — |
+| `wx4er7` | 9,875 | -0.5 | +1.0 | one-sided | — |
+| `wx4erk` | 16,247 | -0.2 | +1.7 | one-sided | — |
+| `wx4ew8` | 4,828 | -0.1 | +2.4 | one-sided | — |
+| `wx4eqy` | 159,294 | +0.2 | -5.5 | one-sided | — |
+| `wx4eq9` | 4,078 | +0.3 | -0.3 | flat | — |
+| `wx4ert` | 3,728 | +0.4 | -0.3 | flat | — |
+| `wx4err` | 3,233 | +0.7 | -0.9 | flat | — |
+| `wx4er5` | 13,893 | +1.1 | -0.1 | one-sided | — |
+| `wx4ex2` | 3,351 | +1.2 | -2.5 | reversed | workplace (drains AM, fills PM) |
+| `wx4erq` | 6,768 | +1.5 | -1.1 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqm` | 3,911 | +1.7 | -1.5 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqg` | 29,780 | +4.6 | -0.5 | one-sided | — |
+| `wx4eqz` | 30,439 | +7.2 | -9.7 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqs` | 48,653 | +9.9 | -5.7 | reversed | workplace (drains AM, fills PM) |
+| `wx4erh` | 44,160 | +13.8 | -8.1 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqe` | 44,260 | +15.7 | -9.5 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqv` | 132,926 | +18.9 | +8.2 | same | — |
+| `wx4erj` | 85,415 | +28.9 | -14.5 | reversed | workplace (drains AM, fills PM) |
+| `wx4eqt` | 213,448 | +86.2 | -101.5 | reversed | workplace (drains AM, fills PM) |
