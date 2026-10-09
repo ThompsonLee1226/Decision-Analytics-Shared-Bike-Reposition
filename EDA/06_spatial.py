@@ -9,20 +9,7 @@ drain away or pile up (D2/D3).
     fig05  departure and arrival volume, L6 cells, one shared log colour scale
     fig06  net flow per L6 cell, diverging scale centred at zero
 
-The spatial unit is drawn, not dotted
--------------------------------------
-The plan says "scatter cell_summary centroids".  The maps here draw each L6
-cell as the **rectangle it actually is** (`cells.rect`) instead.  Two reasons:
-at this zoom a dot carries no sense of the unit, and the geohash grid *is* a
-partition of the map, so a reader should see the partition.  It is the same
-data either way.
-
-What governs the numbers on these maps
---------------------------------------
-The extract is "trips touching the study area" (§K0), so a cell **inside** the
-ring has complete counts and a cell **outside** it does not: only its trips that
-also touch the area are present.  Three encodings carry that, and the legend
-says so:
+Three encodings carry that, and the legend says so:
 
     solid, full colour   cell wholly inside the ring  -> counts complete
     hatched              cell straddles the ring      -> counts incomplete
@@ -64,7 +51,7 @@ from maps import (COMPLETE, COMPLETENESS_NOTE, caption, draw_cells,
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-TRIPS = OUT / "trips_clean.csv.gz"
+TRIPS = OUT / "trips_clean_keepzerodur_keepanomday.csv.gz"
 
 PAD_KM = 3.0
 ZOOM = 14

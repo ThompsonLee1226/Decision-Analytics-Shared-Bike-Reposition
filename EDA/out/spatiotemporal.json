@@ -2,7 +2,7 @@
  "top_cells": 30,
  "top_cells_in_region": 11,
  "weekdays": 60,
- "days": 83,
+ "days": 84,
  "min_gross_per_day": 2.0,
  "balance_limited": 0.6,
  "cell_hours_masked": 223,
@@ -16,20 +16,20 @@
  "clean_reversals": [
   {
    "cell": "wx4eqw",
-   "net_am": -159.73,
+   "net_am": -159.72,
    "net_pm": 132.62,
    "reading": "residential (fills AM, drains PM)"
   },
   {
    "cell": "wx4ern",
    "net_am": -24.32,
-   "net_pm": 23.14,
+   "net_pm": 23.15,
    "reading": "residential (fills AM, drains PM)"
   },
   {
    "cell": "wx4erp",
    "net_am": -11.27,
-   "net_pm": 4.77,
+   "net_pm": 4.76,
    "reading": "residential (fills AM, drains PM)"
   },
   {
@@ -52,8 +52,8 @@
   },
   {
    "cell": "wx4erq",
-   "net_am": 1.51,
-   "net_pm": -1.16,
+   "net_am": 1.48,
+   "net_pm": -1.14,
    "reading": "workplace (drains AM, fills PM)"
   },
   {
@@ -64,38 +64,38 @@
   },
   {
    "cell": "wx4eqz",
-   "net_am": 7.26,
-   "net_pm": -9.69,
+   "net_am": 7.24,
+   "net_pm": -9.71,
    "reading": "workplace (drains AM, fills PM)"
   },
   {
    "cell": "wx4eqs",
-   "net_am": 9.86,
-   "net_pm": -5.67,
+   "net_am": 9.87,
+   "net_pm": -5.66,
    "reading": "workplace (drains AM, fills PM)"
   },
   {
    "cell": "wx4erh",
-   "net_am": 13.81,
-   "net_pm": -8.06,
+   "net_am": 13.82,
+   "net_pm": -8.07,
    "reading": "workplace (drains AM, fills PM)"
   },
   {
    "cell": "wx4eqe",
    "net_am": 15.73,
-   "net_pm": -9.5,
+   "net_pm": -9.49,
    "reading": "workplace (drains AM, fills PM)"
   },
   {
    "cell": "wx4erj",
    "net_am": 28.91,
-   "net_pm": -14.56,
+   "net_pm": -14.55,
    "reading": "workplace (drains AM, fills PM)"
   },
   {
    "cell": "wx4eqt",
-   "net_am": 86.23,
-   "net_pm": -101.49,
+   "net_am": 86.21,
+   "net_pm": -101.47,
    "reading": "workplace (drains AM, fills PM)"
   }
  ],

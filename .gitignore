@@ -6,5 +6,12 @@
 /SDAM-2nd-edition.pdf
 
 /EDA/.tilecache
-/Dataset/dataset_train_20260921_lsz.csv
-EDA/out/trips_clean.csv.gz
+/EDA/__pycache__
+/Dataset
+
+# The cleaned trip table is large and exactly reproducible by re-running
+# `EDA/01_data_cleaning.py`, so no policy variant is tracked.  The glob covers
+# the tagged wider-policy outputs (trips_clean_keepzerodur_keepanomday...).
+# The small siblings (cell_summary*, cleaning_report*, cleaning_summary*) still
+# follow the rest of out/ and stay trackable.
+EDA/out/trips_clean*.csv.gz

@@ -9,29 +9,18 @@ Section C of the plan: how demand moves through time.
            picked out; (b) hour-of-day, weekday and weekend overlaid
     fig04  day-of-week x hour heat map, **normalised per row**
 
-Why these two
--------------
 C1 is the two time scales the plan cares about and nothing else: the trend
-across the 83 days, and the shape within a day.  They are one figure because a
-reader should see the ramp-up and the double peak in the same glance -- the
-morning peak is a commute-driven *supply* event (bikes leave residential areas)
-and the evening peak is its mirror, and that asymmetry is the engine of the
-imbalance §E measures.
+across the cleaned window, and the shape within a day.  They are one figure
+because a reader should see the ramp-up and the double peak in the same glance
+-- the morning peak is a commute-driven *supply* event (bikes leave residential
+areas) and the evening peak is its mirror, and that asymmetry is the engine of
+the imbalance §E measures.
 
 C2 exists to check one thing: that the intraday shape is not the same every day
 of the week.  It is row-normalised, and the normalisation is stated on the
 figure.  An unlabelled row-normalised heat map is the most common way to
 mislead with a heat map, because the reader cannot tell whether a dark cell
 means "a lot of trips" or "a small share of a small day".
-
-Two normalisation choices worth naming
---------------------------------------
-* The heat map is normalised **per row** (per weekday), because the 83 cleaned
-  days do not contain an equal number of each weekday -- 2026-05-17 is a Sunday
-  and was removed as an anomaly day -- so raw counts would be biased against
-  Sundays by construction.
-* Each cell is the **mean count per occurrence of that weekday**, not a total,
-  for the same reason.
 
 Usage:
     python 05_temporal.py
@@ -50,13 +39,20 @@ import viz
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-TRIPS = OUT / "trips_clean.csv.gz"
+TRIPS = OUT / "trips_clean_keepzerodur_keepanomday.csv.gz"
 
 DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-# days the cleaner removed; drawn as holes in the series so the QC action is
-# visible on the slide rather than hidden behind an interpolated line
-REMOVED = {"2026-05-17": "anomaly day removed (A5)\n2,463 trips = 22.6% of its baseline"}
+# Days the cleaner actually dropped are drawn as holes in the series, so the QC
+# action is visible on the slide rather than hidden behind an interpolated line.
+# The dict supplies the *reason* text only -- which days get marked comes from
+# `daily.removed` (a day absent from the input), so a label can never outlive
+# the gap it describes.  Under the wider policy (01_data_cleaning.py
+# --keep-anomaly-day) 2026-05-17 is present, the loop is empty, and the figure
+# correctly shows a continuous series.
+REMOVED_REASON = {
+    "2026-05-17": "anomaly day removed (A5)\n2,463 trips = 22.6% of its baseline",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -113,14 +109,13 @@ def fig_temporal(plt, daily: pd.DataFrame, prof: pd.DataFrame) -> None:
     ax.bar(we.date, we.n, width=.78, color=viz.AMBER, alpha=.90, label="weekend")
     ax.plot(daily.date, daily.roll7, color=viz.INK, lw=1.7, label="7-day centred mean")
 
-    for d, msg in REMOVED.items():
-        t = pd.Timestamp(d)
-        if daily.date.min() <= t <= daily.date.max():
-            ax.axvline(t, color=viz.RED, lw=1.1, ls=":")
-            ax.annotate("anomaly day removed\n(A5)", xy=(t, daily.n.max() * .93),
-                        xytext=(t - pd.Timedelta(days=21), daily.n.max() * .97),
-                        fontsize=8.2, color=viz.RED, ha="left",
-                        arrowprops=dict(arrowstyle="->", color=viz.RED, lw=.8))
+    for t in daily.date[daily.removed]:
+        msg = REMOVED_REASON.get(t.strftime("%Y-%m-%d"), "day absent from the input")
+        ax.axvline(t, color=viz.RED, lw=1.1, ls=":")
+        ax.annotate(msg, xy=(t, daily.n.max() * .93),
+                    xytext=(t - pd.Timedelta(days=21), daily.n.max() * .97),
+                    fontsize=8.2, color=viz.RED, ha="left",
+                    arrowprops=dict(arrowstyle="->", color=viz.RED, lw=.8))
 
     # name the ramp-up rather than let it read as a demand trend to extrapolate.
     # The note sits on an opaque patch: every band below the bars is bar colour,

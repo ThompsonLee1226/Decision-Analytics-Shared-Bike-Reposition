@@ -54,7 +54,7 @@ import region as R
 import viz
 
 HERE = Path(__file__).resolve().parent
-TRIPS = HERE / "out" / "trips_clean.csv.gz"
+TRIPS = HERE / "out" / "trips_clean_keepzerodur_keepanomday.csv.gz"
 OUT = HERE / "out"
 
 M_PER_DEG_LAT = 110540.0

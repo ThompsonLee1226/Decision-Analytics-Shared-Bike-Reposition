@@ -34,7 +34,7 @@ Models (H4) -- the assignment asks for at least two
 
 Split (H3) -- walk-forward, never random
 ----------------------------------------
-The 83 cleaned days are a time series with strong day-of-week structure. A random
+The cleaned window is a time series with strong day-of-week structure. A random
 row-wise split would let the model see Tuesday 14:00 of week 8 while predicting
 Tuesday 14:00 of week 6, with the lag features carrying the answer across.
 Instead: **four blocks of ~19 days, always training on the past and validating
@@ -49,10 +49,14 @@ here rather than leakage.
 
 Outlier handling (H6)
 ---------------------
-All modelling uses `trips_clean.csv.gz` -- every tier dropped, 98.57% of rows
-retained. The criteria and the 1.4% footprint are on the §A3 slide. There is no
-robustness re-run on a second dataset: duplicating three models buys a slide the
-grading does not ask for.
+All modelling uses `trips_clean_keepzerodur_keepanomday.csv.gz` -- the **wider**
+cleaning policy, which releases `qc_zero_dur` and `qc_anomaly_day` from the drop
+set and keeps everything else in the §A3 taxonomy. 99.81% of rows are retained
+on a 0.19% footprint, and because the collapsed day is kept the window is a
+contiguous 84 days, so no 24 h / 168 h lag straddles a hole. The per-run counts
+are in `cleaning_report_keepzerodur_keepanomday.json`. There is no robustness
+re-run on a second dataset: duplicating three models buys a slide the grading
+does not ask for.
 
 Usage:
     python 09_demand_model.py
@@ -77,7 +81,7 @@ import viz
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-TRIPS = OUT / "trips_clean.csv.gz"
+TRIPS = OUT / "trips_clean_keepzerodur_keepanomday.csv.gz"
 SUMM = OUT / "cell6_summary.csv"
 
 TOP_CELLS = 30
@@ -509,7 +513,7 @@ let noise dominate every aggregate metric.
 
 ## H3 — Walk-forward validation
 
-**Random splitting was rejected.** The cleaned 83 days are a time series with a strong
+**Random splitting was rejected.** The cleaned window is a time series with a strong
 day-of-week cycle; a random row split would put Tuesday 14:00 of week 8 in
 training and Tuesday 14:00 of week 6 in validation, with `lag168` carrying the
 answer straight across. The design instead is an **expanding window over four
@@ -585,9 +589,13 @@ this gap named, is more useful than reporting whichever one looks better.
 
 ## H6 — Outlier handling
 
-All models use `trips_clean.csv.gz` — every QC tier dropped, 98.57% of rows
-retained; the criteria are the §A3 taxonomy and its 1.4% footprint. **No
-robustness re-run across datasets.**
+All models use `{TRIPS.name}` — the **wider cleaning policy**, which releases
+`qc_zero_dur` and `qc_anomaly_day` from the drop set; everything else in the §A3
+taxonomy still applies. That retains 99.81% of rows on a 0.19% footprint (1,246
+rows dropped), and keeping 2026-05-17 means the window is a contiguous 84 days,
+so no 24 h / 168 h lag straddles a hole. The per-run counts are in
+`cleaning_report_keepzerodur_keepanomday.json`. **No robustness re-run across
+datasets.**
 
 ## Limitations carried into the deck
 

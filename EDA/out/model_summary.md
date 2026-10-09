@@ -8,9 +8,9 @@
 | | |
 |---|---|
 | Target | hourly **departure count** per (L6 cell, hour, day) |
-| Population | top **30** L6 cells by volume — 54,720 cell-hours, zero-filled |
-| Non-zero share | 70.1% |
-| Departures covered | 592,139 |
+| Population | top **30** L6 cells by volume — 55,440 cell-hours, zero-filled |
+| Non-zero share | 69.9% |
+| Departures covered | 599,992 |
 | Temporal | `hour`, `dow`, `is_weekend` |
 | Lagged | `lag1` (previous hour), `lag24` (same hour yesterday), `lag168` (same hour, same weekday last week), plus a 3-hour mean of `lag1` |
 | Spatial | `cell` as a categorical (fixed effect), `cell_prior` (the cell's mean count **over training days only**) |
@@ -23,7 +23,7 @@ let noise dominate every aggregate metric.
 
 ## H3 — Walk-forward validation
 
-**Random splitting was rejected.** The cleaned 83 days are a time series with a strong
+**Random splitting was rejected.** The cleaned window is a time series with a strong
 day-of-week cycle; a random row split would put Tuesday 14:00 of week 8 in
 training and Tuesday 14:00 of week 6 in validation, with `lag168` carrying the
 answer straight across. The design instead is an **expanding window over four
@@ -34,7 +34,7 @@ blocks, always validating on days after every training day**:
 | 1 | 2026-03-09 .. 2026-03-27 | 19 | train only |
 | 2 | 2026-03-28 .. 2026-04-15 | 19 | validate |
 | 3 | 2026-04-16 .. 2026-05-04 | 19 | validate |
-| 4 | 2026-05-05 .. 2026-05-24 | 19 | validate |
+| 4 | 2026-05-05 .. 2026-05-24 | 20 | validate |
 
 Blocks 2–4 are the evaluation folds; block 1 is training only. The model is
 **refitted per fold**, and `cell_prior` is recomputed from each fold's training
@@ -55,10 +55,10 @@ everything up to hour *t−1*. `lag1`, `lag24` and `lag168` are all in that set.
 **Why negative binomial and not Poisson.** §F4 measured the mean–variance slope
 at **1.39** where Poisson requires 1.00, and §F1 shows the sample variance
 running several times the mean. Fitting a Poisson GLM here returns a Pearson
-chi-square over residual degrees of freedom of **1.86** — nearly 1.9× the value
+chi-square over residual degrees of freedom of **1.88** — nearly 1.9× the value
 a correct specification would give. The Poisson is fitted alongside the NB as
 that evidence, not as a candidate. The fitted NB dispersion parameter is
-**alpha ≈ 0.082** (per fold: 0.068, 0.082, 0.096).
+**alpha ≈ 0.083** (per fold: 0.070, 0.083, 0.097).
 
 ## H5 — Results
 
@@ -66,13 +66,13 @@ Pooled over the validation folds:
 
 | model | MAE | RMSE | Poisson deviance | vs baseline | calibration (Σpred/Σobs) |
 |---|---:|---:|---:|---:|---:|
-| Seasonal naive (baseline) | 3.15 | 8.59 | 3.642 | +0.0% | 0.939 |
-| Negative binomial GLM | 3.86 | 16.33 | 2.642 | -27.5% | 1.031 |
-| Gradient-boosted trees (Poisson) | 2.92 | 9.06 | 1.843 | -49.4% | 0.992 |
+| Seasonal naive (baseline) | 3.21 | 8.72 | 3.699 | +0.0% | 0.945 |
+| Negative binomial GLM | 3.92 | 16.65 | 2.729 | -26.2% | 1.038 |
+| Gradient-boosted trees (Poisson) | 2.95 | 9.24 | 1.899 | -48.7% | 0.997 |
 
-Per-fold Poisson deviance — Negative binomial GLM: 2.15, 2.57, 3.20 ·
-Gradient-boosted trees (Poisson): 1.62, 1.78, 2.13 ·
-Seasonal naive (baseline): 5.39, 2.59, 2.95.
+Per-fold Poisson deviance — Negative binomial GLM: 2.18, 2.62, 3.36 ·
+Gradient-boosted trees (Poisson): 1.62, 1.80, 2.26 ·
+Seasonal naive (baseline): 5.40, 2.61, 3.12.
 
 **Read MAE and Poisson deviance together.** RMSE on counts is dominated by the
 highest-volume cells, so a model can look acceptable on RMSE while being wrong
@@ -88,8 +88,8 @@ exactly the failure that empties a station. It is reported as Σpred/Σobs, and
 boosting model's is 3.1 times its own.** A gap that wide means a
 handful of enormous errors rather than uniformly worse predictions, and the
 predictions confirm it: the GLM's 99.9th-percentile prediction is
-**532** departures in one cell-hour and its largest is
-**1,017**, against a maximum of 476 ever observed.
+**547** departures in one cell-hour and its largest is
+**1,050**, against a maximum of 495 ever observed.
 
 The mechanism is the log link. An NB GLM is multiplicative, so when `lag1` and
 `lag168` are both at a daily peak the fitted coefficients compound instead of
@@ -104,9 +104,13 @@ this gap named, is more useful than reporting whichever one looks better.
 
 ## H6 — Outlier handling
 
-All models use `trips_clean.csv.gz` — every QC tier dropped, 98.57% of rows
-retained; the criteria are the §A3 taxonomy and its 1.4% footprint. **No
-robustness re-run across datasets.**
+All models use `trips_clean_keepzerodur_keepanomday.csv.gz` — the **wider cleaning policy**, which releases
+`qc_zero_dur` and `qc_anomaly_day` from the drop set; everything else in the §A3
+taxonomy still applies. That retains 99.81% of rows on a 0.19% footprint (1,246
+rows dropped), and keeping 2026-05-17 means the window is a contiguous 84 days,
+so no 24 h / 168 h lag straddles a hole. The per-run counts are in
+`cleaning_report_keepzerodur_keepanomday.json`. **No robustness re-run across
+datasets.**
 
 ## Limitations carried into the deck
 

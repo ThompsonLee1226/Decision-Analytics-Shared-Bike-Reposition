@@ -10,31 +10,6 @@ Poisson model is defensible.
            variance = mean reference line
     table  sample variance and sample quantiles per hotspot and peak hour
 
-Why one table rather than a fan chart
--------------------------------------
-HW §1 asks by name for **sample variances and sample quantiles**.  The F1 table
-carries `variance`, `p50` and `p90` as columns, which satisfies that in one
-place; the deleted fan chart (F2) was a picture of the same three numbers.  The
-p90 column is also the operationally meaningful one -- it is the inventory a
-cell needs to avoid stockouts on a busy day, where the mean would be wrong about
-half the time.
-
-Why the dispersion test matters more than it looks
---------------------------------------------------
-A Poisson model assumes variance = mean.  If the observed variance is well
-above the mean, a Poisson GLM will **understate uncertainty and over-fit the
-zeros**, and the fix is a negative-binomial GLM or a quasi-Poisson correction.
-Finding that here, before fitting anything, is far cheaper than finding it in
-the residuals -- and §H4 uses the answer to choose its first model.
-
-The panel
----------
-Counts are **departures per (cell, hour, day)** for the top `TOP_CELLS` cells,
-over all days (not weekdays only), because that is exactly the panel §H1
-predicts.  Cell-hours with a mean below `MIN_MEAN` are dropped from the
-dispersion fit: at a mean of 0.2 trips/day the variance is dominated by whether
-a single trip happened, and those points would sit on the reference line by
-construction and dilute the test.
 
 Usage:
     python 08_uncertainty.py
@@ -53,7 +28,7 @@ import viz
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-TRIPS = OUT / "trips_clean.csv.gz"
+TRIPS = OUT / "trips_clean_keepzerodur_keepanomday.csv.gz"
 SUMM = OUT / "cell6_summary.csv"
 
 TOP_CELLS = 30            # same population as §E1 and §H1
