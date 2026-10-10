@@ -15,3 +15,8 @@
 # The small siblings (cell_summary*, cleaning_report*, cleaning_summary*) still
 # follow the rest of out/ and stay trackable.
 EDA/out/trips_clean*.csv.gz
+
+# External reference dataset used to verify the cleaning fix (XGBoost README §0);
+# large and not needed to run anything.
+/trips_clean_keepzerodur_keepanomday.csv.gz
+__pycache__/
