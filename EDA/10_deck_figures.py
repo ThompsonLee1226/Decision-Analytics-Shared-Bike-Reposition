@@ -19,8 +19,9 @@ unchanged and a filename still maps onto a slide without a lookup table.
 
 **Nothing here recomputes a statistic of record.**  Every number is read from an
 artifact an earlier script already wrote and the prose already quotes --
-`cleaning_report.json`, `table_f1_variance_quantiles.csv`, `table_c1_daily.csv`,
-`table_h3_folds.csv`, `table_h1_panel.csv.gz`, `model_XGBoost/out/report.json`
+`cleaning_report_keepzerodur_keepanomday.json`, `table_f1_variance_quantiles.csv`,
+`table_c1_daily.csv`, `table_h3_folds.csv`, `table_h1_panel.csv.gz`,
+`model_XGBoost/out/report.json`
 -- so a figure here cannot silently drift away from the table standing next to
 it.  The single exception is fig17(b), which re-reads the raw CSV to get the
 *before-cleaning* duration distribution, because that distribution is not
@@ -44,7 +45,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 ROOT = HERE.parent
 
-CLEANING = OUT / "cleaning_report.json"
+CLEANING = OUT / "cleaning_report_keepzerodur_keepanomday.json"
 DAILY = OUT / "table_c1_daily.csv"
 FOLDS = OUT / "table_h3_folds.csv"
 QUANT = OUT / "table_f1_variance_quantiles.csv"
@@ -99,7 +100,8 @@ def fig17(plt) -> None:
     raw = pd.read_csv(RAW, usecols=["start_time", "end_time"])
     before = (pd.to_datetime(raw.end_time)
               - pd.to_datetime(raw.start_time)).dt.total_seconds() / 60.0
-    clean = pd.read_csv(OUT / "trips_clean.csv.gz", usecols=["duration_min"])
+    clean = pd.read_csv(OUT / "trips_clean_keepzerodur_keepanomday.csv.gz",
+                        usecols=["duration_min"])
     after = clean.duration_min.astype(float)
 
     hi = 200.0
