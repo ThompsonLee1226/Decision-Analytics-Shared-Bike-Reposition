@@ -162,8 +162,9 @@ log-link 外推——实测 pred_max 402、从未越过观测上界 495（§4.2�
 **没有 early stopping。** 一折能空出来的带标签数据只有它自己的验证集，在上面停就会把
 答案泄进模型。
 
-**离群值处理是继承的，没有重新决策**：见 §0，`trips_clean.csv.gz` 丢弃 Tier 0/1 中
-真正不可能的记录（负时长、速度 > 30 km/h、跨研究区）加 `qc_dur_gt_180`，保留 99.81%。
+**离群值处理是继承的，没有重新决策**：见 §0，`trips_clean_keepzerodur_keepanomday.csv.gz`
+丢弃 Tier 0/1 中真正不可能的记录（负时长、速度 > 30 km/h、跨研究区）加 `qc_dur_gt_180`，
+保留 99.81%。
 
 ---
 
@@ -292,10 +293,11 @@ mu = model.predict(C.tree_design(new_df, cats))     # new_df 要有 8 个数值�
   实测 495、预测 124。这类点会直接表现为调度时的缺车。
 - **第 3 折校准 0.944**，即整体低估 5.6%；前两折分别 +3.5% 和 +0.2%。
   校准不是常数，随需求水平漂移。
-- **异常日只保留了一天。** `2026-05-17`（2,363 次出发，全期日均 7,855）现在在面板里，
+- **异常日只保留了一天。** `2026-05-17`（面板内 30 格 2,363 次出发，同期全网格 2,458；
+  验证折的日均是 7,855）现在在面板里，
   而 20 天的第 4 折也只包含这一个异常日 —— 这点样本量不足以让模型学会"异常日长什么样"。
   这是保留它的代价，也是为什么第 4 折的 deviance 最高（2.002）。
-- **`EDA/out/` 已整体重跑到更正后的数据上**（`02`–`08` 全部重跑，16 张图与配套表格/JSON 全部刷新）。
+- **`EDA/out/` 已整体重跑到更正后的数据上**（`02`–`09` 全部重跑，16 张图与配套表格/JSON 全部刷新）。
   重跑后 `cell6_summary.csv` 的 top-30 与更正前**完全一致**，所以模型不需要跟着重跑。
 - **预测的是"实际发生"而不是"潜在需求"**（§G 的截尾问题），这是天花板的一半。
 
@@ -304,7 +306,10 @@ mu = model.predict(C.tree_design(new_df, cats))     # new_df 要有 8 个数值�
 ## 7. 怎么复现
 
 ```bash
-python EDA/01_data_cleaning.py         # 清洗策略在脚本顶部的 CLEAN_DROP_FLAGS 里
+python EDA/01_data_cleaning.py --keep-zero-dur --keep-anomaly-day
+                                       # 这两个开关不能省：03-09 读的都是带 tag 的
+                                       # trips_clean_keepzerodur_keepanomday.csv.gz，
+                                       # 不带开关只生成默认口径的 trips_clean.csv.gz
 python EDA/02_region_map.py --png      # 区域底图 + fig07（--png 不能省，默认不写图）
 python EDA/03_region_flow.py           # fig08, fig09
 python EDA/04_distributions.py         # fig01, fig02
@@ -315,12 +320,14 @@ python EDA/08_uncertainty.py           # fig13
 python EDA/09_demand_model.py          # 面板与流水线三模型（fig14-16, table_h5_*）
 python model_XGBoost/xgboost_model.py  # 三折训练 + 评估，写 out/
 python model_XGBoost/train_final.py    # 全量重训，写 models/（会断言重载后逐位一致）
+python EDA/10_deck_figures.py          # deck 用的四张图 fig17-20
 jupyter nbconvert --to notebook --execute --inplace model_XGBoost/results.ipynb
                                        # 重算三折 + 重画 5 张图，写 out/
 ```
 
-`02`–`08` 必须按编号顺序跑：`06_spatial.py` 写出的 `cell6_summary.csv` 是 `07` / `08` /
-`09` 的输入（top-30 热点就是从这里选的）。
+`02`–`10` 必须按编号顺序跑：`06_spatial.py` 写出的 `cell6_summary.csv` 是 `07` / `08` /
+`09` 的输入（top-30 热点就是从这里选的），`09` 写出的 `table_h1_panel.csv.gz` /
+`table_h3_folds.csv` 又是 `10` 的输入。
 
 **环境上没有依赖清单**，所以记一笔：`02_region_map.py` 需要 `folium`（本次装进了
 `computer-vision` 环境：folium 0.20.0 + branca + xyzservices）。缺它时脚本会在写
