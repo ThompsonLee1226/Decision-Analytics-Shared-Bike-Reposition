@@ -8,6 +8,7 @@
 /EDA/.tilecache
 /EDA/__pycache__
 /Dataset
+/hw
 
 # The cleaned trip table is large and exactly reproducible by re-running
 # `EDA/01_data_cleaning.py`, so no policy variant is tracked.  The glob covers
