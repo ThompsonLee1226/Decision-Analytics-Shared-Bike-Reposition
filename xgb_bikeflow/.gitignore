@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *.so
 
+# The 34 MB vendor export.  Same 667,821 trips as the tracked
+# `data/orders_2026.csv.gz`, before the cleaning pass, so it carries no
+# information the tracked file does not already define -- and at 34 MB it was
+# larger than the rest of this package combined.  One test compares the two
+# files and skips when this one is absent; see README "Where the data comes
+# from" for how to drop it back in.
+data/dataset_train_20260921_lsz.csv.gz
+
 # Run outputs: models are large, and every run can be reproduced from its config
 runs/
 *.egg-info/

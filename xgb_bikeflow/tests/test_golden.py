@@ -62,6 +62,18 @@ HOLIDAYS = ("2026-04-04", "2026-04-05", "2026-04-06",
             "2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05")
 MAKEUP = ("2026-05-09",)
 
+#: The vendor export, 34 MB compressed.  It is deliberately *not* tracked: it is
+#: the same trips as ``orders_2026.csv.gz`` before a cleaning pass, so it adds no
+#: information a reader cannot reconstruct, and at 34 MB it dominated the clone
+#: size for everyone on the repository.  Place it here to run the one test that
+#: compares the two files; see the "Where the data comes from" section of the
+#: README.  Every other test runs without it.
+RAW_EXPORT = DATA / "dataset_train_20260921_lsz.csv.gz"
+requires_raw_export = pytest.mark.skipif(
+    not RAW_EXPORT.exists(),
+    reason=f"vendor export not present at {RAW_EXPORT}; see README 'Where the data comes from'",
+)
+
 
 @pytest.fixture(scope="module")
 def orders():
@@ -131,8 +143,9 @@ def test_workday_rule_drops_weekends_and_holidays_but_keeps_makeup(orders):
         assert gone not in kept, gone
 
 
+@requires_raw_export
 def test_the_raw_export_drives_the_same_pipeline():
-    """Both shipped order files must build a panel, and the same shape of one.
+    """Both order files must build a panel, and the same shape of one.
 
     `dataset_train_20260921_lsz.csv.gz` is the vendor export untouched;
     `orders_2026.csv.gz` is the same trips after a cleaning pass that drops 1,246
@@ -140,6 +153,9 @@ def test_the_raw_export_drives_the_same_pipeline():
     have to line up -- an extra or missing (cell, day, slot) row would mean the
     two files disagree about the calendar or the universe, which is a different
     problem from a count being higher.
+
+    The vendor export is not tracked (see ``RAW_EXPORT``), so this test skips
+    unless you have placed it in ``data/``.
     """
     spec = SL.SlotSpec(450, 180, 60)
     grid = G.GridSpec(level=8)
@@ -150,8 +166,7 @@ def test_the_raw_export_drives_the_same_pipeline():
         SR.SourceSpec(kind="orders", path=DATA / "orders_2026.csv.gz",
                       date_column="date", **common), grid, spec, verbose=False)
     raw, b = SR.build_panel(
-        SR.SourceSpec(kind="orders",
-                      path=DATA / "dataset_train_20260921_lsz.csv.gz",
+        SR.SourceSpec(kind="orders", path=RAW_EXPORT,
                       date_column="action_dt", **common), grid, spec, verbose=False)
 
     assert b["rows_read"] > a["rows_read"], "the raw export is the bigger file"

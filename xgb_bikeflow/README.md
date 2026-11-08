@@ -99,11 +99,12 @@ that quiet slots do not exist, which is a different model.
 
 #### Which of the two shipped order files to point at
 
-`data/` holds two tables of the same trips:
+`data/` holds two tables of the same trips (`orders_2026.csv.gz` is tracked; the
+vendor export is not — see "Where the data comes from" below):
 
 | File | Rows | Columns | What it is |
 |---|---|---|---|
-| `dataset_train_20260921_lsz.csv.gz` | 667,821 | `action_dt`, `order_id`, `bike_id`, `start_time`, `end_time`, `start_geohash`, `end_geohash` | the vendor export, untouched |
+| `dataset_train_20260921_lsz.csv.gz` | 667,821 | `action_dt`, `order_id`, `bike_id`, `start_time`, `end_time`, `start_geohash`, `end_geohash` | the vendor export, untouched (not tracked) |
 | `orders_2026.csv.gz` | 666,575 | `start_time`, `end_time`, `start_geohash`, `end_geohash`, `date` | the same trips after a cleaning pass |
 
 The 1,246 missing rows are not a parse failure. They are dropped by an explicit
@@ -130,8 +131,30 @@ difference, not an error.
 
 `dataset_train_20260921_lsz.csv.gz` is the gzip of the original file at level 9
 (34.0 MB from 83.9 MB); round-tripped through pandas it is identical to the
-source, null mask and values both. It ships compressed only because the
-uncompressed file is 84 MB and git stores that forever.
+source, null mask and values both.
+
+#### Where the data comes from
+
+Only `data/orders_2026.csv.gz` is tracked. It is the file every shipped config
+names, and it is enough to run the whole pipeline and all but two of the tests.
+
+`data/dataset_train_20260921_lsz.csv.gz` (the 34 MB vendor export) is **not**
+tracked. It holds the same 667,821 trips as `orders_2026.csv.gz` before the
+cleaning pass, so it carries no information the tracked file does not already
+define — it only lets one test cross-check the two row sets. At 34 MB it was
+larger than the rest of this package combined and it dominated clone time for
+everyone on the repository, which is a poor trade for a redundant input.
+
+To run that one test, place the file at `data/dataset_train_20260921_lsz.csv.gz`
+and run `pytest`; the test is skipped, with this same explanation, when the file
+is absent. Nothing else changes. The remaining `data/` files — the network, its
+five build inputs, the EDA panel and the weather table — are all small and are
+tracked, so a fresh clone builds the network and trains from `orders_2026.csv.gz`
+without fetching anything.
+
+The uncompressed source is 84 MB and lives outside version control, in the
+course dataset folder (`Dataset/dataset_train_20260921_lsz.csv`, the same file
+`EDA/01_data_cleaning.py` reads).
 
 ### 2. Write the rest of the config
 
@@ -679,9 +702,10 @@ xgb_bikeflow/
     measure/               the measurements behind docs/ -- see measure/README.md
   configs/              network_v1.yaml (v1.0), horizon_am.yaml, tile3x3_l8.yaml,
                         eda_comparison.yaml, compat/
-  data/                 the vendor export (gzip, 34 MB) and the cleaned extract,
-                        the network and the five files it was built from, the
-                        EDA panel, weather
+  data/                 the cleaned order extract (tracked), the network and the
+                        five files it was built from, the EDA panel, weather.
+                        The 34 MB vendor export is gitignored -- see
+                        "Where the data comes from"
   docs/                 network_v1.md, fold_geometry.md, holiday_and_gamma.md,
                         eda_comparison/ (measurement output)
   tests/                counting, gamma, rollup additivity, end-to-end anchors

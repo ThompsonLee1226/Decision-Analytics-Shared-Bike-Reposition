@@ -20,4 +20,19 @@ EDA/out/trips_clean*.csv.gz
 # External reference dataset used to verify the cleaning fix (XGBoost README §0);
 # large and not needed to run anything.
 /trips_clean_keepzerodur_keepanomday.csv.gz
+
+# --- Large, regenerable artefacts -------------------------------------------
+# These rules exist because of size, not because the files are useless: each is
+# either a redundant copy of a tracked input or something a tracked script
+# rebuilds, so a clone can reproduce it — but carrying it made `git pull` slow
+# for everyone on the repository.
+#
+# The 34 MB vendor export.  Same 667,821 trips as xgb_bikeflow's cleaned,
+# tracked extract; one test compares the two and skips when this file is
+# absent.  See xgb_bikeflow/README.md "Where the data comes from".
+xgb_bikeflow/data/dataset_train_20260921_lsz.csv.gz
+
+# A whole-repository archive; /Dataset is the raw input directory (also above).
+EDA.zip
+
 __pycache__/
