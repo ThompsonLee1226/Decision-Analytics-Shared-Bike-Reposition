@@ -1,0 +1,22 @@
+{
+  "rows": 55440,
+  "units": 30,
+  "days": 77,
+  "departures": 599992,
+  "arrivals": 596139,
+  "zero_share_dep": 0.30117243867243865,
+  "zero_share_arr": 0.2891233766233766,
+  "eda_gbdt_deviance": 1.8553165330408883,
+  "eda_naive_deviance": 3.135937220634269,
+  "eda_features": [
+    "hour",
+    "dow",
+    "is_weekend",
+    "lag1",
+    "lag24",
+    "lag168",
+    "lag1h_ma3",
+    "cell_prior",
+    "cell (categorical)"
+  ]
+}

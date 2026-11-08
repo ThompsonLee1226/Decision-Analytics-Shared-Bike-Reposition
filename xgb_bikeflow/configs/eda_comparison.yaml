@@ -1,0 +1,145 @@
+# =============================================================================
+# THE EDA PANEL, RE-SCORED WITH THIS PACKAGE
+#
+# Purpose: answer "can this thing actually train on the data our EDA produced?"
+# by running it on exactly that data, at exactly that resolution, with exactly
+# that split, and comparing against the numbers 09_demand_model.py reported.
+#
+# The panel is rebuilt from EDA/out/trips_clean.csv.gz and asserts row-for-row
+# equality with EDA/out/table_h1_panel.csv.gz (55,440 rows, 599,992 departures, 0
+# disagreements).  The EDA panel itself cannot be read directly: it carries only
+# departures (`n`), has no arrivals column and no coordinates, and xgb_bikeflow
+# needs both.  The rebuilt panel ships as `data/panel_eda_l6.csv.gz` so this config
+# runs without the EDA repository present.
+#
+# WHAT IS HELD EQUAL TO THE EDA PIPELINE
+#   units      30 L6 cells, the same top-30 by departures
+#   window     2026-03-09 .. 2026-05-24, 77 days
+#   slots      24 hours, start 0, width 60  (its `hour` column)
+#   folds      the EDA report's own split is walk_forward at 19/19/19/20 days;
+#              switch `fold.scheme` to `walk_forward` to reproduce it exactly.
+#              The shipped setting is `week_forward` (3/3/3/2 weeks), because that
+#              is the geometry the rest of the package now uses -- see the fold
+#              block below for why the distinction matters.
+#
+# WHAT DIFFERS, AND WHY (this is the point of the exercise)
+#   lags       The EDA model used lag1 / lag24 / lag168 / lag1h_ma3.  This package
+#              refuses target lags by design, and no config can change that -- so
+#              the comparison is *not* feature-for-feature.  It answers a
+#              different question: does the calendar+geometry+profile+weather
+#              feature set reach the same accuracy without them?
+#   weather    The EDA report says weather and holidays were "not available".
+#              They are available here (the shipped weather table covers this
+#              window, the calendar flags are computed from dates), so this run
+#              has strictly more information of a *different* kind.
+#   units      30 fixed cells rather than every active cell: the EDA restriction
+#              is preserved so the target population is identical.
+#   loss       Plain deviance over all rows.  The gamma gathering-point loss is
+#              off because these 30 cells are all ordinary cells -- there are no
+#              gathering points at L6 in this population, and inventing some would
+#              make the score incomparable to the EDA's.
+# =============================================================================
+
+run:
+  name: eda_comparison
+  outdir: ../runs
+  seed: 0
+  verbose: true
+
+source:
+  kind: panel
+  path: ../data/panel_eda_l6.csv.gz
+  slot_column: hour
+  sort_rows: false
+
+slots:
+  start: 0
+  span_minutes: 1440
+  width_minutes: 60
+
+unit:
+  level: 6
+  shape: [1, 1]
+  aligned: true
+
+rows:
+  train_units: all
+  score_units: all
+  train_slots: all
+  score_slots: all
+  off_target_weight: 1.0
+
+loss:
+  gathering: none
+  mode: off            # no gathering points exist at this resolution
+  gamma: 0.5
+  fit_weight: 0.0
+
+features:
+  blocks:
+    - calendar
+    - geometry
+    - trend
+    - profile
+    - weather
+  options:
+    calendar:
+      makeup_dow: 4
+      holiday_dow: 5
+      window_origin: train
+    trend:
+      clip: [0.3, 3.0]
+      min_days_per_class: 4
+    profile:
+      fallback: zero
+    weather:
+      path: ../data/weather_hourly.csv
+      heavy_mm: 2.0
+      cold_c: 2.0
+      hot_c: 26.0
+
+fold:
+  # Mondays, so each fold validates whole weeks: 3 / 3 / 3 / 2 weeks here.
+  #
+  # The EDA report this config is compared against used equal-count blocks over
+  # 77 consecutive days: 19 / 19 / 19 / 20.  That is a genuinely different split
+  # -- its fold 2 starts on a Saturday and fold 3 on a Thursday, so a validation
+  # block shares four of its five weekdays with the training set.  Switch to
+  # `walk_forward` to reproduce the EDA split exactly.
+  #
+  # Measured both ways on the rows the two splits share (40,320 of them), against
+  # the EDA predictions on those same rows:
+  #
+  #   scheme          n        EDA      ours    change
+  #   walk_forward    40,320   1.7854   1.4892   -16.6%
+  #   week_forward    40,320   1.7854   1.4765   -17.3%
+  #
+  # So the gap is not an artefact of the split.  Pooled over each scheme's own
+  # validation rows the numbers are 1.4784 (walk, 41,760 rows) and 1.4765 (week,
+  # 40,320 rows) -- nearly identical, but on different populations, which is why
+  # the shared-row table above is the one to quote.
+  scheme: week_forward
+  n_blocks: 4
+
+model:
+  params:
+    objective: count:poisson
+    tree_method: hist
+    n_estimators: 800
+    learning_rate: 0.027961076605773953
+    max_depth: 7
+    min_child_weight: 15.148583299107765
+    subsample: 0.6054044571993191
+    colsample_bytree: 0.7263459249659886
+    n_jobs: 1
+    verbosity: 0
+  tune:
+    enabled: false
+    trials: 20
+  calibrate: true
+  calibration:
+    compound: false
+
+save:
+  models: false
+  predictions: true

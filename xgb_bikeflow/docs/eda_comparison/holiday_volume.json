@@ -1,0 +1,55 @@
+{
+  "workday_mean": 2513.7894736842104,
+  "weekend_mean": 1062.3157894736842,
+  "holiday_mean": 853.0,
+  "holidays": [
+    {
+      "date": "2026-04-04",
+      "weekday": "Sat",
+      "events": 952,
+      "vs_workday": 0.379
+    },
+    {
+      "date": "2026-04-05",
+      "weekday": "Sun",
+      "events": 770,
+      "vs_workday": 0.306
+    },
+    {
+      "date": "2026-04-06",
+      "weekday": "Mon",
+      "events": 749,
+      "vs_workday": 0.298
+    },
+    {
+      "date": "2026-05-01",
+      "weekday": "Fri",
+      "events": 849,
+      "vs_workday": 0.338
+    },
+    {
+      "date": "2026-05-02",
+      "weekday": "Sat",
+      "events": 864,
+      "vs_workday": 0.344
+    },
+    {
+      "date": "2026-05-03",
+      "weekday": "Sun",
+      "events": 869,
+      "vs_workday": 0.346
+    },
+    {
+      "date": "2026-05-04",
+      "weekday": "Mon",
+      "events": 870,
+      "vs_workday": 0.346
+    },
+    {
+      "date": "2026-05-05",
+      "weekday": "Tue",
+      "events": 901,
+      "vs_workday": 0.358
+    }
+  ]
+}
