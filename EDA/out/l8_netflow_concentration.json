@@ -1,0 +1,99 @@
+{
+ "source": "l8_block_netflow_top10_3x3.json",
+ "weekdays": 60,
+ "top_n": 10,
+ "rank_by": "block",
+ "non_overlapping": true,
+ "threshold_pct": 50.0,
+ "denominator_note": "sum of positive cell net (inflow) or |negative cell net| (outflow) over in-region L8 cells, per weekday",
+ "panels": {
+  "am_inflow": {
+   "peak": "am",
+   "direction": "inflow",
+   "denominator_per_weekday": 1183.7666666666669,
+   "top10_net_per_weekday": 322.01666666666665,
+   "top10_share_pct": 27.20271449891588,
+   "top10_exceeds_50": false,
+   "min_n_over_50": null,
+   "cumulative_at_min_n_pct": null,
+   "cumulative_pct": [
+    4.854560301861289,
+    8.64753752147101,
+    11.297271421732885,
+    13.94559738687241,
+    16.555909103708498,
+    18.800157688733698,
+    20.997944414721363,
+    23.136597865570348,
+    25.17810379297721,
+    27.20271449891588
+   ]
+  },
+  "am_outflow": {
+   "peak": "am",
+   "direction": "outflow",
+   "denominator_per_weekday": 1125.15,
+   "top10_net_per_weekday": 606.3000000000001,
+   "top10_share_pct": 53.886148513531516,
+   "top10_exceeds_50": true,
+   "min_n_over_50": 7,
+   "cumulative_at_min_n_pct": 50.88802974418225,
+   "cumulative_pct": [
+    29.480513709283205,
+    37.40538298597224,
+    42.764668414581756,
+    46.14347716600749,
+    47.99952598912737,
+    49.452665570516515,
+    50.88802974418225,
+    52.14267727265993,
+    53.115880845516884,
+    53.886148513531516
+   ]
+  },
+  "pm_inflow": {
+   "peak": "pm",
+   "direction": "inflow",
+   "denominator_per_weekday": 814.3666666666668,
+   "top10_net_per_weekday": 513.4166666666666,
+   "top10_share_pct": 63.04490196881011,
+   "top10_exceeds_50": true,
+   "min_n_over_50": 4,
+   "cumulative_at_min_n_pct": 52.44361671646678,
+   "cumulative_pct": [
+    33.308092177970615,
+    45.95800417502353,
+    49.388072530801026,
+    52.44361671646678,
+    54.85244157013629,
+    57.1425647742622,
+    58.861692112480036,
+    60.49076992345789,
+    61.92132945847488,
+    63.04490196881011
+   ]
+  },
+  "pm_outflow": {
+   "peak": "pm",
+   "direction": "outflow",
+   "denominator_per_weekday": 865.5,
+   "top10_net_per_weekday": 169.55,
+   "top10_share_pct": 19.589832466782205,
+   "top10_exceeds_50": false,
+   "min_n_over_50": null,
+   "cumulative_at_min_n_pct": null,
+   "cumulative_pct": [
+    3.3314076641632964,
+    6.156364336606971,
+    8.523011746581936,
+    10.783747352204891,
+    12.44945118428654,
+    13.970729828615443,
+    15.445792412863469,
+    16.882341613710764,
+    18.247641055266705,
+    19.589832466782205
+   ]
+  }
+ }
+}

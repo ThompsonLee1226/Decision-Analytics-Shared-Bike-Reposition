@@ -5,7 +5,7 @@
 **Input:** `Dataset/dataset_train_20260921_lsz.csv` → cleaned by `EDA/01_data_cleaning.py`
 **Boundary input:** `data_select_configure_zgc_20260909.xlsx` (repo root) → `EDA/region.py` → `EDA/02_region_map.py`, `EDA/03_region_flow.py`
 **Working files:** `EDA/out/trips_clean.csv.gz`, `EDA/out/cell_summary.csv`, `EDA/out/cleaning_summary.md`, `EDA/out/cleaning_report.json`, `EDA/out/region_map.html`, `EDA/out/region_flow_summary.md` + `region_flow.json`
-**Figures:** all sixteen live in `EDA/out/` as `figNN_<slug>.png`, numbered per §I1
+**Figures:** all nineteen live in `EDA/out/` as `figNN_<slug>.png`, numbered per §I1
 **Date written:** 2026-10-08 · **Revised:** 2026-10-08 · **Deadline:** 13:30, 2026-10-12
 
 > **Revision note.** This plan was cut down to what advances the argument. Item IDs are
@@ -30,6 +30,19 @@
 > their earlier descriptive filenames. Where a build turned up a number that disagreed with
 > this document, **it was the document that was wrong**; the corrections are marked *(corrected
 > at build)* below and the reasons are in the summary `.md` files.
+>
+> **Added 2026-10-22: L8 peak net-flow addendum (fig 17–20).** `10_l8_peak_maps.py` and
+> `11_l8_peak_hotspots.py` work at the raw 8-character geohash (~29 m × 19 m), inside the
+> study-area ring only, on **three-hour peaks** (AM 07:00–09:59, PM 17:00–19:59). Fig 17 maps
+> signed net inflow per weekday (`arrivals − departures`: blue = accumulate, red = drain).
+> Fig 18 keeps the top 10 net-inflow and top 10 net-outflow **3×3 neighbourhoods** with
+> centres chosen by single-cell net flow; fig 19 chooses the centres by the **3×3 block net**
+> over every active in-region cell. Both require the ten blocks to be disjoint and draw both
+> directions on one map per peak; each block's daily net and its share of service-wide net
+> inflow/outflow (and of gross flow) are in the companion tables. Fig 20
+> (`12_l8_netflow_concentration.py`) accumulates those shares by rank and asks how few blocks
+> carry half the service-wide net flow: only PM inflow (N = 4) and AM outflow (N = 7) pass
+> 50%. All use the existing Amap basemap stack.
 >
 > Three of those corrections are worth knowing before reading further, because they change
 > what a reader would infer: an L6 cell is **937 m × 607 m**, not 1.22 km × 0.61 km (the
@@ -386,7 +399,7 @@ Report that all modelling uses `trips_clean.csv.gz` (all tiers dropped, 98.57% r
 
 ## I. Deliverables
 
-### I1 — Chart inventory (**16 figures**)
+### I1 — Chart inventory (**19 figures**)
 
 | # | Figure | Section | Kind |
 |---|---|---|---|
@@ -406,8 +419,11 @@ Report that all modelling uses `trips_clean.csv.gz` (all tiers dropped, 98.57% r
 | 14 | Predicted vs actual scatter | H5 | scatter |
 | 15 | Residual map (diverging) | H5 | map |
 | 16 | Error by hour | H5 | boxplot |
+| 17 | **L8 peak-window net-inflow heat maps (AM/PM, 2 panels, per weekday)** | **D1 addendum** | map — *added 2026-10-22* |
+| 18 | **Top-10 L8 3×3 net-flow neighbourhoods, centres selected by single-cell net** | **D3 addendum** | map — *added 2026-10-22* |
+| 19 | **Top-10 L8 3×3 net-flow neighbourhoods, centres selected by 3×3 block net** | **D3 addendum** | map — *added 2026-10-22* |
 
-> **All sixteen are built**, and every filename in `out/` is `figNN_<slug>.png` for that number — the E0 three were renamed from their earlier descriptive filenames (`region_boundary.png` → `fig07_study_area.png`, `region_flow_hourly.png` → `fig08_boundary_exchange.png`, `region_flow_map.png` → `fig09_boundary_crossings.png`) so a filename maps onto a slide without a lookup table. Inserting the three E0 figures shifted the old #7–#13 to #10–#16; nothing was dropped. #5, #6, #7, #9, #11 and #15 are rendered on Amap tiles and carry the attribution requirement.
+> **All nineteen are built**, and every filename in `out/` is `figNN_<slug>.png` for that number — the E0 three were renamed from their earlier descriptive filenames (`region_boundary.png` → `fig07_study_area.png`, `region_flow_hourly.png` → `fig08_boundary_exchange.png`, `region_flow_map.png` → `fig09_boundary_crossings.png`) so a filename maps onto a slide without a lookup table. Inserting the three E0 figures shifted the old #7–#13 to #10–#16; nothing was dropped. #5, #6, #7, #9, #11, #15, #17, #18 and #19 are rendered on Amap tiles and carry the attribution requirement.
 >
 > **Kinds, as built.** #1 duration+distance **+ a quantile table rendered inside the image** (slide 4 then needs one file, not a chart and a table that drift apart); #2 Lorenz **+ a bar panel naming the top 12 cells**, because at Gini 0.969 the Lorenz curve alone degenerates into an L-shape and is unreadable; #5, #6, #10, #11, #15 draw L6 cells as the **rectangles they are** rather than centroid dots, and encode extract-completeness with a hatch (§K0); #12 uses **symlog** axes so the two cells that swing ±100 trips/day do not collapse the other 28 onto the origin. Each deviation is argued in the relevant script's docstring.
 
@@ -499,7 +515,19 @@ basemap.py         Amap tiles as a matplotlib background (cached in .tilecache/)
 07_spatiotemporal.py   §E  (fig 10-12) -> spatiotemporal_summary.md
 08_uncertainty.py      §F  (fig 13)  -> uncertainty_summary.md
 09_demand_model.py     §H  (fig 14-16) -> model_summary.md
+10_l8_peak_maps.py     D1 addendum (fig 17) -> l8_peak_netflow_summary.md
+11_l8_peak_hotspots.py D3 addendum (fig 18-19) -> l8_peak_netflow_top10_3x3_summary.md,
+                        l8_block_netflow_top10_3x3_summary.md
+12_l8_netflow_concentration.py D3 addendum (fig 20) -> l8_netflow_concentration_summary.md
 ```
+
+`l8.py` is the shared L8 aggregation used by scripts 10 and 11: it validates
+the 8-character geohash, filters weekdays, and accumulates the three-hour AM
+(07–09) and PM (17–19) windows per cell, then derives signed net inflow
+`arrivals − departures` (positive = the cell accumulates bikes). It also
+exposes the 3×3 block centred on a cell and the non-overlapping top-10
+selection. L8 is the raw geohash precision; the L6 grid in `cells.py` is a
+prefix truncation of the same string.
 
 `00_build_region.py` and `02_grid_map.py` — which built the region out of OSM road intersections — were superseded by the supplied polygon and have been **deleted**, along with their outputs. `out/datum_evidence_osm_roads.json` is the one deliberate survivor: it is the raw evidence for the datum call and nothing in the pipeline reads it.
 
