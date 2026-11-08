@@ -1,0 +1,210 @@
+# =============================================================================
+# Morning peak, cell level, gamma-weighted loss.
+#
+# This is the config the brief describes: the input is the raw order table, the
+# only thing counted is the 07:30-10:30 horizon on working days, the loss puts
+# `gamma` of its weight on the gathering points' mean deviance and the rest on
+# the mean over every other cell, and the output is a rate for every cell in the
+# panel.
+#
+#   python -m xgb_bikeflow.cli check --config configs/horizon_am.yaml
+#   python -m xgb_bikeflow.cli run   --config configs/horizon_am.yaml
+#
+# A full run on the shipped data: 9,594 cells over 65 days (working days plus the
+# eight statutory holidays), 6 half-hour slots, ~3.7M rows, ~21 minutes per target
+# on a laptop at n_jobs: 1.
+# =============================================================================
+
+run:
+  name: horizon_am
+  outdir: ../runs
+  seed: 0
+  verbose: true
+
+source:
+  # `orders` counts the raw trip table; `panel` reads a table that is already one
+  # row per (unit, date, slot).  Orders is the default because the horizon and the
+  # grid are both decisions this file makes, and a pre-built panel has already
+  # made them somewhere else.
+  kind: orders
+  path: ../data/orders_2026.csv.gz
+  date_column: date
+  # A trip is a departure from its origin and an arrival at its destination, so
+  # the two sides read different columns.  A trip can be a departure inside the
+  # horizon and an arrival outside it; both sides count independently.
+  departures_cell: start_geohash
+  arrivals_cell: end_geohash
+  departures_time: start_time
+  arrivals_time: end_time
+  time_format: null          # null -> pandas infers; set "%H:%M:%S" to be strict
+
+  # Working days, plus the eight statutory holidays, labelled rather than dropped.
+  #
+  # `workday` would delete them, and they are real: 04-06 and 05-04 are both
+  # Mondays with 4,530 and 5,081 orders in the file, and inside this horizon the
+  # eight run at 0.34x a working day.  Deleting them meant `is_holiday` was constant
+  # zero in every training row, so a holiday was answered by the trend
+  # extrapolation and came out 3x too high.  Keeping them fixes that (holiday
+  # deviance -29.5% arrivals / -24.1% departures) and costs the working days
+  # 0.3-1.1%.  Measured in docs/holiday_and_gamma.md.
+  days: labelled
+  holidays: [2026-04-04, 2026-04-05, 2026-04-06,
+             2026-05-01, 2026-05-02, 2026-05-03, 2026-05-04, 2026-05-05]
+  makeup: [2026-05-09]
+
+  # Which cells the panel is built over.
+  #   active_in_window  a cell that moved at least `min_events` trips inside the
+  #                     horizon on any kept day (5,861 cells on this data)
+  #   all               the whole lattice implied by the file (17,688 cells)
+  #   {file: cells.csv} a study area decided elsewhere
+  # The horizon is what makes this a decision rather than a detail: 17,688 cells
+  # see morning traffic somewhere in the window, but only 5,861 do so more than
+  # once, and 45% of them are non-zero on under 1% of days.
+  cells: active_in_window
+  min_events: 2
+
+  # Keep the file's row order.  Off is a modelling decision: xgboost's subsample
+  # draws by row position, so re-sorting the same rows trains a different model.
+  sort_rows: false
+
+slots:
+  # 07:30-10:30 in half hours: 6 slots starting at 07:30, 08:00, ... 10:00.
+  # Use width_minutes: 60 for 3 slots.  The pair is the horizon and the
+  # resolution, and both are the config's business -- nothing downstream assumes
+  # hour-aligned slots.
+  start: "07:30"
+  span_minutes: 180
+  width_minutes: 30
+
+unit:
+  # The spatial unit.  A unit is a level, a shape and an alignment, not a name
+  # from a list: level 8 is one geohash character grid (~19x29 m here), shape
+  # [3, 3] would group nine of them.
+  level: 8
+  shape: [1, 1]
+  aligned: true
+
+rows:
+  train_units: all
+  score_units: null          # null -> the same units that were trained on
+  train_slots: all           # all | [0, 1, 2]
+  score_slots: all
+  # Per-row weight for rows NOT in score_units, separate from the gamma loss.
+  # 1.0 trains on everything; 0.0 is a hard mask.  The gamma rule below is what
+  # balances gathering points against the rest, so this stays at 1.
+  off_target_weight: 1.0
+
+loss:
+  # gamma * mean(deviance over gathering points)
+  #   + (1 - gamma) * mean(deviance over every other cell)
+  #
+  # `gathering` is deliberately a file rather than a hard-coded list: the
+  # gathering points are being agreed with the other group, and swapping the file
+  # should be the whole change.  Any of these work:
+  #   none                                  no grouping (plain mean deviance)
+  #   all                                   every unit is a gathering point
+  #   [wx4eqtke, wx4eqtv1]                  an explicit list
+  #   {file: ../data/gathering_points.json} cells from a JSON or CSV
+  gathering:
+    file: ../data/gathering_points.json
+  # group_mean  gamma weights the two groups' *means*  <- what the brief asks for
+  # row_weighted  gamma is a per-row weight; with 801 gathering cells against
+  #               8,793 others, gamma=0.5 hands them 8.3% of the weight instead of
+  #               half, so gamma stops meaning what it says.  Kept for comparison.
+  # off          ignore the grouping entirely
+  mode: group_mean
+  gamma: 0.5
+  # Also weight the *fit* by group, not only the score. 0 leaves training alone;
+  # this is a separate decision from how the result is judged, and mixing the two
+  # would make a scored number look better without the model having changed.
+  fit_weight: 0.0
+
+features:
+  # Emission order matters: trend reads the calendar's dow/is_weekend, profile
+  # reads nothing but the panel, weather reads slot -> clock time.
+  blocks:
+    - calendar        # slot, day type, holiday adjacency, window index
+    - geometry        # x/y and distance from the city centroid
+    - trend           # fitted: one log-linear scale per day type
+    - profile         # fitted: per (unit, slot) level, spread and share
+    - weather         # precipitation, temperature, wind, cloud
+    # panel_context is deliberately absent: it carries a static per-unit attribute
+    # (dock count, capacity) when the panel has one, and this panel does not.  The
+    # v1 pipeline's `n_cells_touched` looked like such an attribute but was counted
+    # from the same trips as the target -- at cell level it equals "this row is
+    # non-zero", i.e. the label.  See features/context.py.
+  options:
+    calendar:
+      # 4 = Friday for a make-up Saturday (2026-05-09 ran at 99% of a real
+      # Friday); 5 = Saturday rhythms for a statutory holiday whatever weekday it
+      # lands on (measured -3.7% arrivals, and it is what fixes 04-06).
+      makeup_dow: 4
+      holiday_dow: 5
+      # 'train' numbers the window offset from the first training day so training
+      # and scoring happen in one frame; 'frame' is the legacy per-split origin.
+      window_origin: train
+    trend:
+      clip: [0.3, 3.0]
+      min_days_per_class: 4
+    profile:
+      fallback: zero        # 'global' fills unseen units with the all-unit mean
+    weather:
+      path: ../data/weather_hourly.csv
+      heavy_mm: 2.0
+      cold_c: 2.0
+      hot_c: 26.0
+
+fold:
+  scheme: week_forward
+  # Edges go on Mondays, so each fold validates whole weeks.  Equal-count blocks
+  # would land the edges mid-week here: this panel is working days only, so 57
+  # days span 12 calendar weeks and 57/4 = 14.25 puts a cut on a Thursday.
+  #
+  # The week counts come out 3 / 4 / 2 rather than 3 / 3 / 3, and that is the
+  # calendar, not the rule: 04-06 and 05-04 are Mondays that fall on statutory
+  # holidays, so neither is in the panel and neither can carry a cut.  The
+  # nearest Monday takes over and one block ends up a week long.  Forcing 3/3/3
+  # would mean cutting inside a week, which is the thing this scheme exists to
+  # avoid.
+  n_blocks: 4
+
+model:
+  params:
+    objective: count:poisson
+    tree_method: hist
+    n_estimators: 700
+    learning_rate: 0.04
+    max_depth: 8
+    min_child_weight: 8.0
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+    reg_alpha: 0.0
+    gamma: 1e-8
+    random_state: 0
+    # n_jobs is part of the experiment, not an environment detail: xgboost's
+    # histogram build is not bit-reproducible across thread counts, and on the
+    # study panel the spread between 1 and 32 threads was 0.018 deviance -- wider
+    # than most of the improvements worth reporting.
+    n_jobs: 1
+    verbosity: 0
+
+  # Tuning is per target and disabled by default; `run --trials N` turns it on.
+  # With a gamma loss active the search objective is the gamma loss, not the plain
+  # deviance, because otherwise it would optimise a number nobody is going to
+  # report.
+  tune:
+    enabled: false
+    trials: 20
+
+  calibrate: true
+  calibration:
+    # Forward-only multiplicative correction: each fold sets the next one's factor
+    # from its own out-of-sample ratio, so no fold sees its own predictions and
+    # fold 1 is uncalibrated by construction.
+    compound: false
+
+save:
+  models: true
+  dir: models
+  predictions: true

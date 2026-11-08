@@ -116,7 +116,6 @@ def build_panel(trips: pd.DataFrame, cells_: list[str]) -> pd.DataFrame:
     p["dt"] = pd.to_datetime(p.date)
     p["dow"] = p.dt.dt.dayofweek
     p["is_weekend"] = (p.dow >= 5).astype(int)
-    p["day_index"] = p.dt.rank(method="dense").astype(int) - 1
     p = p.sort_values(["cell", "dt", "hour"]).reset_index(drop=True)
 
     g = p.groupby("cell", sort=False)
@@ -125,6 +124,10 @@ def build_panel(trips: pd.DataFrame, cells_: list[str]) -> pd.DataFrame:
     p["lag1h_ma3"] = g.n.transform(lambda s: s.shift(1).rolling(3, min_periods=1).mean())
 
     p = p.dropna(subset=[f"lag{L}" for L in LAGS]).reset_index(drop=True)
+    # Ranked *after* the drop, so `day_index` counts the panel's own days (0..D-1)
+    # and lines up with the block edges, which are positions in that same list.
+    # Ranking before the drop would leave it offset by max(LAGS)//24 days.
+    p["day_index"] = p.dt.rank(method="dense").astype(int) - 1
     return p
 
 
@@ -467,6 +470,11 @@ def main(argv=None) -> int:
 
 
 def write_summary(pooled, per_fold, panel, blocks, nb_alpha, po_disp, best, preds):
+    # Read from the packages, not from literals: a hand-written version string
+    # silently goes stale the first time the environment is rebuilt.
+    import sklearn
+    import statsmodels
+
     order = ["seasonal_naive", "nb_glm", "gbdt_poisson"]
     p = pooled.set_index("model").loc[[m for m in order if m in set(pooled.model)]]
     base = p.loc["seasonal_naive"]
@@ -535,8 +543,8 @@ everything up to hour *t−1*. `lag1`, `lag24` and `lag168` are all in that set.
 
 | # | model | assumptions | software |
 |---|---|---|---|
-| 1 | **Negative binomial GLM**, log link, cell + hour + dow fixed effects | counts are NB with variance ∝ mean^p; log-linear rate | `statsmodels` 0.14.6, `smf.negativebinomial` |
-| 2 | **Gradient-boosted trees, Poisson objective** | no functional form; interactions learnt | `scikit-learn` 1.8.0, `HistGradientBoostingRegressor(loss="poisson")` |
+| 1 | **Negative binomial GLM**, log link, cell + hour + dow fixed effects | counts are NB with variance ∝ mean^p; log-linear rate | `statsmodels` {statsmodels.__version__}, `smf.negativebinomial` |
+| 2 | **Gradient-boosted trees, Poisson objective** | no functional form; interactions learnt | `scikit-learn` {sklearn.__version__}, `HistGradientBoostingRegressor(loss="poisson")` |
 | 3 | **Seasonal naive** (baseline) | the cell's mean count for the same hour and weekday persists | this script |
 
 **Why negative binomial and not Poisson.** §F4 measured the mean–variance slope

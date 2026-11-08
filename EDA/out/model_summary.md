@@ -48,17 +48,17 @@ everything up to hour *t−1*. `lag1`, `lag24` and `lag168` are all in that set.
 
 | # | model | assumptions | software |
 |---|---|---|---|
-| 1 | **Negative binomial GLM**, log link, cell + hour + dow fixed effects | counts are NB with variance ∝ mean^p; log-linear rate | `statsmodels` 0.14.6, `smf.negativebinomial` |
-| 2 | **Gradient-boosted trees, Poisson objective** | no functional form; interactions learnt | `scikit-learn` 1.8.0, `HistGradientBoostingRegressor(loss="poisson")` |
+| 1 | **Negative binomial GLM**, log link, cell + hour + dow fixed effects | counts are NB with variance ∝ mean^p; log-linear rate | `statsmodels` 0.14.5, `smf.negativebinomial` |
+| 2 | **Gradient-boosted trees, Poisson objective** | no functional form; interactions learnt | `scikit-learn` 1.7.1, `HistGradientBoostingRegressor(loss="poisson")` |
 | 3 | **Seasonal naive** (baseline) | the cell's mean count for the same hour and weekday persists | this script |
 
 **Why negative binomial and not Poisson.** §F4 measured the mean–variance slope
 at **1.39** where Poisson requires 1.00, and §F1 shows the sample variance
 running several times the mean. Fitting a Poisson GLM here returns a Pearson
-chi-square over residual degrees of freedom of **1.88** — nearly 1.9× the value
+chi-square over residual degrees of freedom of **1.96** — nearly 2.0× the value
 a correct specification would give. The Poisson is fitted alongside the NB as
 that evidence, not as a candidate. The fitted NB dispersion parameter is
-**alpha ≈ 0.083** (per fold: 0.070, 0.083, 0.097).
+**alpha ≈ 0.090** (per fold: 0.070, 0.090, 0.110).
 
 ## H5 — Results
 
@@ -66,13 +66,13 @@ Pooled over the validation folds:
 
 | model | MAE | RMSE | Poisson deviance | vs baseline | calibration (Σpred/Σobs) |
 |---|---:|---:|---:|---:|---:|
-| Seasonal naive (baseline) | 3.21 | 8.72 | 3.699 | +0.0% | 0.945 |
-| Negative binomial GLM | 3.92 | 16.65 | 2.729 | -26.2% | 1.038 |
-| Gradient-boosted trees (Poisson) | 2.95 | 9.24 | 1.899 | -48.7% | 0.997 |
+| Seasonal naive (baseline) | 3.30 | 9.00 | 3.136 | +0.0% | 0.937 |
+| Negative binomial GLM | 4.03 | 17.10 | 2.834 | -9.6% | 1.034 |
+| Gradient-boosted trees (Poisson) | 2.92 | 8.50 | 1.855 | -40.8% | 0.989 |
 
-Per-fold Poisson deviance — Negative binomial GLM: 2.18, 2.62, 3.36 ·
-Gradient-boosted trees (Poisson): 1.62, 1.80, 2.26 ·
-Seasonal naive (baseline): 5.40, 2.61, 3.12.
+Per-fold Poisson deviance — Negative binomial GLM: 2.43, 2.78, 3.27 ·
+Gradient-boosted trees (Poisson): 1.80, 1.71, 2.05 ·
+Seasonal naive (baseline): 3.64, 2.75, 3.02.
 
 **Read MAE and Poisson deviance together.** RMSE on counts is dominated by the
 highest-volume cells, so a model can look acceptable on RMSE while being wrong
@@ -85,11 +85,11 @@ exactly the failure that empties a station. It is reported as Σpred/Σobs, and
 ### The one result that needs explaining rather than presenting
 
 **The negative binomial GLM's RMSE is 4.2 times its MAE, while the
-boosting model's is 3.1 times its own.** A gap that wide means a
+boosting model's is 2.9 times its own.** A gap that wide means a
 handful of enormous errors rather than uniformly worse predictions, and the
 predictions confirm it: the GLM's 99.9th-percentile prediction is
-**547** departures in one cell-hour and its largest is
-**1,050**, against a maximum of 495 ever observed.
+**576** departures in one cell-hour and its largest is
+**1,082**, against a maximum of 495 ever observed.
 
 The mechanism is the log link. An NB GLM is multiplicative, so when `lag1` and
 `lag168` are both at a daily peak the fitted coefficients compound instead of

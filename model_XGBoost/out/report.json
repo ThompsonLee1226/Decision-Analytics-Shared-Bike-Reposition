@@ -1,0 +1,120 @@
+{
+ "model": "xgboost",
+ "name": "XGBoost (Poisson)",
+ "objective": "count:poisson",
+ "params": {
+  "objective": "count:poisson",
+  "tree_method": "hist",
+  "n_estimators": 400,
+  "learning_rate": 0.06,
+  "max_depth": 6,
+  "min_child_weight": 5,
+  "subsample": 0.9,
+  "colsample_bytree": 0.9,
+  "reg_lambda": 1.0,
+  "random_state": 0,
+  "n_jobs": -1,
+  "enable_categorical": true,
+  "verbosity": 0
+ },
+ "features": [
+  "hour",
+  "dow",
+  "is_weekend",
+  "lag1",
+  "lag24",
+  "lag168",
+  "lag1h_ma3",
+  "cell_prior",
+  "cell (categorical)"
+ ],
+ "top_cells": 30,
+ "panel_rows": 55440,
+ "per_fold_metrics": [
+  {
+   "fold": 1,
+   "mae": 2.807411623293771,
+   "rmse": 7.929246720894365,
+   "poisson_deviance": 1.8049598789115429,
+   "pred_sum": 143662.78256443795,
+   "obs_sum": 138798.0,
+   "calibration": 1.0350493707721866,
+   "bias": 0.3556127605583295,
+   "pred_p999": 263.1589174194391,
+   "pred_max": 374.4620056152344
+  },
+  {
+   "fold": 2,
+   "mae": 2.7815824293161806,
+   "rmse": 6.603813252331025,
+   "poisson_deviance": 1.6702130730158344,
+   "pred_sum": 145738.50201723445,
+   "obs_sum": 145449.0,
+   "calibration": 1.0019904022525727,
+   "bias": 0.021162428160413162,
+   "pred_p999": 272.27094586181767,
+   "pred_max": 401.7126770019531
+  },
+  {
+   "fold": 3,
+   "mae": 3.0942786813565504,
+   "rmse": 9.028105008412025,
+   "poisson_deviance": 2.0020444837164484,
+   "pred_sum": 161698.56225437578,
+   "obs_sum": 171344.0,
+   "calibration": 0.9437071753570349,
+   "bias": -0.6698220656683488,
+   "pred_p999": 290.83632189942557,
+   "pred_max": 378.330322265625
+  }
+ ],
+ "pooled_metrics": {
+  "mae": 2.897870010805519,
+  "rmse": 7.936511392114369,
+  "poisson_deviance": 1.8287788924301573,
+  "pred_sum": 451099.8468360482,
+  "obs_sum": 455591.0,
+  "calibration": 0.9901421380932639,
+  "bias": -0.10754677116742868,
+  "pred_p999": 281.15240478515625,
+  "pred_max": 401.7126770019531
+ },
+ "reference_models": [
+  {
+   "model": "gbdt_poisson",
+   "mae": 2.919424201397199,
+   "rmse": 8.497564998532871,
+   "poisson_deviance": 1.8553165330408885,
+   "pred_sum": 450773.1430245482,
+   "obs_sum": 455591.0,
+   "calibration": 0.9894250391788868,
+   "bias": -0.1153701383010494,
+   "pred_p999": 312.56470053850387,
+   "pred_max": 403.3664480939806
+  },
+  {
+   "model": "nb_glm",
+   "mae": 4.032273633192484,
+   "rmse": 17.10108460316681,
+   "poisson_deviance": 2.834222236970643,
+   "pred_sum": 471138.38688722666,
+   "obs_sum": 455591.0,
+   "calibration": 1.0341257550900405,
+   "bias": 0.3723033258435511,
+   "pred_p999": 575.8357211458651,
+   "pred_max": 1082.4548912829894
+  },
+  {
+   "model": "seasonal_naive",
+   "mae": 3.303857758720307,
+   "rmse": 9.004766629425326,
+   "poisson_deviance": 3.135937220634269,
+   "pred_sum": 426894.4166723327,
+   "obs_sum": 455591.0,
+   "calibration": 0.9370124007549154,
+   "bias": -0.6871787195322637,
+   "pred_p999": 283.5,
+   "pred_max": 375.3333333333333
+  }
+ ]
+}

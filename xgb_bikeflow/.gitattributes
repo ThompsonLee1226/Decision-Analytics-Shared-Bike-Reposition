@@ -1,0 +1,15 @@
+# Normalise line endings in the repository, not in each contributor's checkout.
+# Without this, Windows clones get CRLF and Linux clones get LF, so the same
+# commit produces different bytes depending on who checked it out -- which shows
+# up as spurious whole-file diffs and breaks byte-level comparisons of the data.
+* text=auto eol=lf
+
+# Compressed data is binary; never let git touch it.
+*.gz binary
+*.parquet binary
+
+# Keep the shell/CLI entry points executable where the platform supports it.
+*.py text
+*.yaml text
+*.yml text
+*.md text
