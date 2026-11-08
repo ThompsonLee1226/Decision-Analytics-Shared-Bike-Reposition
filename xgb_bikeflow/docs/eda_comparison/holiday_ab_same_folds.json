@@ -1,0 +1,62 @@
+{
+  "note": "fold edges identical across arms; only holiday rows differ",
+  "folds": [
+    "2026-03-23..2026-04-10",
+    "2026-04-13..2026-05-03",
+    "2026-05-04..2026-05-22"
+  ],
+  "targets": {
+    "arrivals": {
+      "A_no_holiday": {
+        "per_fold_dev": [
+          0.205776,
+          0.190825,
+          0.182071
+        ],
+        "pooled_like": 0.192891,
+        "n_rows": 3001500,
+        "n_holiday_rows": 480240,
+        "workday_only_dev": 0.201828
+      },
+      "B_with_holiday": {
+        "per_fold_dev": [
+          0.205776,
+          0.181138,
+          0.176219
+        ],
+        "pooled_like": 0.187711,
+        "n_rows": 3001500,
+        "n_holiday_rows": 480240,
+        "workday_only_dev": 0.200745
+      },
+      "delta_pct": -2.685,
+      "workday_only_delta_pct": -0.537
+    },
+    "departures": {
+      "A_no_holiday": {
+        "per_fold_dev": [
+          0.235922,
+          0.223802,
+          0.215598
+        ],
+        "pooled_like": 0.225108,
+        "n_rows": 3001500,
+        "n_holiday_rows": 480240,
+        "workday_only_dev": 0.23531
+      },
+      "B_with_holiday": {
+        "per_fold_dev": [
+          0.235922,
+          0.215529,
+          0.208415
+        ],
+        "pooled_like": 0.219955,
+        "n_rows": 3001500,
+        "n_holiday_rows": 480240,
+        "workday_only_dev": 0.233948
+      },
+      "delta_pct": -2.289,
+      "workday_only_delta_pct": -0.579
+    }
+  }
+}

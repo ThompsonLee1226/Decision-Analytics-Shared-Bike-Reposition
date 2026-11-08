@@ -1,0 +1,29 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Run outputs: models are large, and every run can be reproduced from its config
+runs/
+*.egg-info/
+build/
+dist/
+
+# Test scratch.  `pytest-cache-files-*` are directories pytest makes itself when
+# the configured basetemp is unwritable -- sandboxes do that -- and they land in
+# the working directory, not in .pytest_cache/.
+.tests-tmp/
+.pytest_cache/
+pytest-cache-files-*/
+_wheel_out/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,53 @@
+{
+  "fold": 3,
+  "window": [
+    "2026-05-04",
+    "2026-05-22"
+  ],
+  "targets": {
+    "arrivals": {
+      "A_no_holiday": {
+        "n_workday": 840420,
+        "n_holiday": 120060,
+        "workday_dev": 0.18737481015769883,
+        "holiday_dev": 0.14494518698002037,
+        "holiday_actual": 0.013943028485757122,
+        "holiday_pred": 0.0424945743589309,
+        "holiday_calibration": 3.0477291502588075
+      },
+      "B_with_holiday": {
+        "n_workday": 840420,
+        "n_holiday": 120060,
+        "workday_dev": 0.18679029163112104,
+        "holiday_dev": 0.10222293546252056,
+        "holiday_actual": 0.013943028485757122,
+        "holiday_pred": 0.013297344805178983,
+        "holiday_calibration": 0.9536912887155249
+      },
+      "holiday_dev_delta_pct": -29.47,
+      "workday_dev_delta_pct": -0.31
+    },
+    "departures": {
+      "A_no_holiday": {
+        "n_workday": 840420,
+        "n_holiday": 120060,
+        "workday_dev": 0.22287109571630617,
+        "holiday_dev": 0.16468957805860984,
+        "holiday_actual": 0.013759786773280026,
+        "holiday_pred": 0.039379256702519315,
+        "holiday_calibration": 2.8619089344458044
+      },
+      "B_with_holiday": {
+        "n_workday": 840420,
+        "n_holiday": 120060,
+        "workday_dev": 0.22031937894857462,
+        "holiday_dev": 0.12508274544786738,
+        "holiday_actual": 0.013759786773280026,
+        "holiday_pred": 0.013260174020321027,
+        "holiday_calibration": 0.9636903709925803
+      },
+      "holiday_dev_delta_pct": -24.05,
+      "workday_dev_delta_pct": -1.14
+    }
+  }
+}

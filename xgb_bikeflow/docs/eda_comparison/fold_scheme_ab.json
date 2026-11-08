@@ -1,0 +1,68 @@
+[
+  {
+    "scheme": "walk_forward",
+    "dev": 1.4784080960669221,
+    "mae": 2.542109137466589,
+    "calibration": 0.9674117142178894,
+    "n": 41760,
+    "folds": [
+      {
+        "fold": 1,
+        "valid": "2026-03-28..2026-04-15",
+        "train_days": 19,
+        "valid_days": 19,
+        "train_rows": 13680,
+        "valid_rows": 13680
+      },
+      {
+        "fold": 2,
+        "valid": "2026-04-16..2026-05-04",
+        "train_days": 38,
+        "valid_days": 19,
+        "train_rows": 27360,
+        "valid_rows": 13680
+      },
+      {
+        "fold": 3,
+        "valid": "2026-05-05..2026-05-24",
+        "train_days": 57,
+        "valid_days": 20,
+        "train_rows": 41040,
+        "valid_rows": 14400
+      }
+    ]
+  },
+  {
+    "scheme": "week_forward",
+    "dev": 1.4764516296527064,
+    "mae": 2.5612294338814863,
+    "calibration": 0.9852492550609644,
+    "n": 40320,
+    "folds": [
+      {
+        "fold": 1,
+        "valid": "2026-03-30..2026-04-19",
+        "train_days": 21,
+        "valid_days": 21,
+        "train_rows": 15120,
+        "valid_rows": 15120
+      },
+      {
+        "fold": 2,
+        "valid": "2026-04-20..2026-05-10",
+        "train_days": 42,
+        "valid_days": 21,
+        "train_rows": 30240,
+        "valid_rows": 15120
+      },
+      {
+        "fold": 3,
+        "valid": "2026-05-11..2026-05-24",
+        "train_days": 63,
+        "valid_days": 14,
+        "train_rows": 45360,
+        "valid_rows": 10080
+      }
+    ]
+  }
+]

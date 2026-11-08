@@ -1,0 +1,161 @@
+# =============================================================================
+# v1.0 — the network the team's gathering points and arcs describe.
+#
+# This is the first config that produces a forecast for *every* entity the
+# network file defines, rather than for a hand-picked list of cells:
+#
+#   96 gathering points   (90 from HW6 + 6 that only the repro network defines)
+#   381 directed arcs     (the 401 in the repro package, minus 20 that collapse
+#                          to a self-loop once the two GP sets are reconciled)
+#   34,364 rows           (5,678 GP cells + 28,686 arc-cell memberships)
+#   8,160 distinct cells  (the horizon puts the panel here, not at 10,005)
+#
+#   python -m xgb_bikeflow.cli check --config configs/network_v1.yaml
+#   python -m xgb_bikeflow.cli run   --config configs/network_v1.yaml
+#   python -m xgb_bikeflow.cli rollup --config configs/network_v1.yaml
+#
+# The horizon is 06:30-10:30, not the 07:30-10:30 of horizon_am.yaml: that is the
+# window the network was designed on (`gp_method_parameters.json` says
+# `"period": "06:30-10:30"`), and scoring a 07:30 start against a network built
+# for 06:30 would answer a different question.  The hour it adds carries 13.6% of
+# the 07:30-10:30 volume.
+# =============================================================================
+
+run:
+  name: network_v1
+  outdir: ../runs
+  seed: 0
+  verbose: true
+
+source:
+  kind: orders
+  path: ../data/orders_2026.csv.gz
+  date_column: date
+  departures_cell: start_geohash
+  arrivals_cell: end_geohash
+  departures_time: start_time
+  arrivals_time: end_time
+  time_format: null
+
+  # The same day rule as the shipped config: working days plus the eight
+  # statutory holidays, labelled.  The network's own calendar rule is Mon-Fri
+  # with no holiday handling ("calendar_rule: Mon-Fri 或 Sat-Sun，不单独识别
+  # 节假日"), but the forecasting side has the eight days measured and they are
+  # worth 24-30% of holiday deviance, so they stay.
+  days: labelled
+  holidays: [2026-04-04, 2026-04-05, 2026-04-06,
+             2026-05-01, 2026-05-02, 2026-05-03, 2026-05-04, 2026-05-05]
+  makeup: [2026-05-09]
+
+  # Every cell the network touches — GP cells, patch cells, and the ones only one
+  # of the two sources lists.  Written by build_network_cells.py from
+  # network_v1.json so there is one definition, not two.
+  #
+  # This is NOT active_in_window: the network's cells are a spatial decision, and
+  # 1,557 of these 8,160 have no event at all in the horizon.  They are kept
+  # because a dock with no observed departures is a real dock, and dropping it
+  # would mean the GP's total is the sum over whichever of its cells happened to
+  # be busy.  The model predicts ~0 for them, which is correct.
+  cells:
+    file: ../data/network_v1_cells.json
+  min_events: 1
+
+  sort_rows: false
+
+slots:
+  start: "06:30"
+  span_minutes: 240
+  width_minutes: 30
+
+unit:
+  level: 8
+  shape: [1, 1]
+  aligned: true
+
+rows:
+  train_units: all
+  score_units: null
+  train_slots: all
+  score_slots: all
+  off_target_weight: 1.0
+
+loss:
+  # The gathering points are the 5,678 cells of the 96 GPs — 69.6% of the
+  # network's 8,160 cells.  That is a very different ratio from horizon_am's
+  # 809-of-10,005, and it is what makes gamma here a genuine 50/50 split rather
+  # than a rounding error: the two groups are 5,678 and 2,482 cells.
+  gathering:
+    file: ../data/network_v1_gp_cells.json
+  mode: group_mean
+  gamma: 0.5
+  fit_weight: 0.0
+
+features:
+  blocks:
+    - calendar
+    - geometry
+    - trend
+    - profile
+    - weather
+  options:
+    calendar:
+      makeup_dow: 4
+      holiday_dow: 5
+      window_origin: train
+    trend:
+      clip: [0.3, 3.0]
+      min_days_per_class: 4
+    profile:
+      fallback: zero
+    weather:
+      path: ../data/weather_hourly.csv
+      heavy_mm: 2.0
+      cold_c: 2.0
+      hot_c: 26.0
+
+fold:
+  scheme: week_forward
+  n_blocks: 4
+
+model:
+  params:
+    objective: count:poisson
+    tree_method: hist
+    n_estimators: 700
+    learning_rate: 0.04
+    max_depth: 8
+    min_child_weight: 8.0
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+    reg_alpha: 0.0
+    gamma: 1e-8
+    random_state: 0
+    n_jobs: 1
+    verbosity: 0
+
+  tune:
+    enabled: false
+    trials: 20
+
+  calibrate: true
+  calibration:
+    compound: false
+
+save:
+  models: true
+  dir: models
+  predictions: true
+
+# ---------------------------------------------------------------------------
+# Everything below is this config's addition: how a cell forecast becomes the
+# gathering-point and arc numbers the network is described in.
+# ---------------------------------------------------------------------------
+rollup:
+  network: ../data/network_v1.json
+  kinds: [gp, arc]
+  # Where to write the per-entity forecasts, relative to the run directory.
+  outdir: entities
+  # Score the rollups against the observed totals over the same member cells.
+  # Off for a forward forecast (there is nothing to compare against yet).
+  score: true

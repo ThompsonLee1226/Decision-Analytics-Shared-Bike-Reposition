@@ -1,0 +1,134 @@
+# =============================================================================
+# Same horizon, coarser unit: level-8 cells grouped into aligned 3x3 blocks.
+#
+# Everything except `unit` matches horizon_am.yaml.  The point of shipping both is
+# that the spatial unit is a *parameter*: a 3x3 block holds nine cells and its
+# counts are the sum of theirs, so the question "cells or blocks?" becomes a
+# config difference rather than a code difference.
+#
+#   python -m xgb_bikeflow.cli run --config configs/tile3x3_l8.yaml
+#
+# What changes when you widen the unit, measured on this data:
+#   - fewer rows (the panel is coarser, so less of it is zero)
+#   - the counts are larger and the profiles smoother, which usually *helps* the
+#     deviance per row
+#   - the deviance is no longer comparable to the cell-level number, because
+#     deviance is a sum over rows: never quote the two side by side
+# =============================================================================
+
+run:
+  name: tile3x3_l8
+  outdir: ../runs
+  seed: 0
+  verbose: true
+
+source:
+  kind: orders
+  path: ../data/orders_2026.csv.gz
+  date_column: date
+  departures_cell: start_geohash
+  arrivals_cell: end_geohash
+  departures_time: start_time
+  arrivals_time: end_time
+  time_format: null
+  days: workday
+  holidays: [2026-04-04, 2026-04-05, 2026-04-06,
+             2026-05-01, 2026-05-02, 2026-05-03, 2026-05-04, 2026-05-05]
+  makeup: [2026-05-09]
+  cells: active_in_window
+  min_events: 2
+  sort_rows: false
+
+slots:
+  start: "07:30"
+  span_minutes: 180
+  width_minutes: 30
+
+unit:
+  # Nine level-8 cells per unit, aligned to the level-8 lattice so the blocks
+  # tile the plane without overlap.  `aligned: false` would instead give each cell
+  # its own 3x3 window, which overlaps its neighbours eight ways -- legitimate for
+  # a local descriptor, wrong for anything you sum.
+  level: 8
+  shape: [3, 3]
+  aligned: true
+
+rows:
+  train_units: all
+  score_units: null
+  train_slots: all
+  score_slots: all
+  off_target_weight: 1.0
+
+loss:
+  # The gathering points are single cells, so at this unit they are the blocks
+  # that *contain* one.  `resolve_membership` intersects the file's ids with the
+  # panel's units, and with a 3x3 grid those ids do not match anything: a block
+  # id is the block's corner cell, not any of its members.
+  #
+  # Rather than silently ending up with zero gathering points, this config turns
+  # the grouping off and says why.  To group blocks, write the block ids into a
+  # file (grid.unit_of(cell) gives them) and point `gathering` at it.
+  gathering: none
+  mode: group_mean
+  gamma: 0.5
+  fit_weight: 0.0
+
+features:
+  blocks:
+    - calendar
+    - geometry
+    - trend
+    - profile
+    - weather
+    # panel_context omitted: the panel has no static per-unit attribute to carry.
+    # See features/context.py for why `n_cells_touched` is not one of those.
+  options:
+    calendar:
+      makeup_dow: 4
+      holiday_dow: 5
+      window_origin: train
+    trend:
+      clip: [0.3, 3.0]
+      min_days_per_class: 4
+    profile:
+      fallback: zero
+    weather:
+      path: ../data/weather_hourly.csv
+      heavy_mm: 2.0
+      cold_c: 2.0
+      hot_c: 26.0
+
+fold:
+  # Mondays, so each fold validates whole weeks -- the same rule the shipped
+  # config uses, which keeps the two comparable.
+  scheme: week_forward
+  n_blocks: 4
+
+model:
+  params:
+    objective: count:poisson
+    tree_method: hist
+    n_estimators: 700
+    learning_rate: 0.04
+    max_depth: 8
+    min_child_weight: 8.0
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+    reg_alpha: 0.0
+    gamma: 1e-8
+    random_state: 0
+    n_jobs: 1
+    verbosity: 0
+  tune:
+    enabled: false
+    trials: 20
+  calibrate: true
+  calibration:
+    compound: false
+
+save:
+  models: true
+  dir: models
+  predictions: true
