@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xgb-bikeflow"
+version = "1.0.0"
+description = "Poisson XGBoost for bike-share arrivals and departures on a geohash grid"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["xgboost", "poisson", "bike-share", "spatio-temporal", "demand-forecasting"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "pandas>=2.0",
+  "numpy>=1.24",
+  "xgboost>=2.0",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+tune = ["optuna>=3.0"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+xgb-bikeflow = "xgb_bikeflow.cli:main"
+
+[tool.setuptools]
+# src layout: the importable package lives in src/, and the repository root holds
+# the things that are not code -- configs/, data/, docs/, scripts/, tests/.
+# Auto-discovery is safe here because `src/` leaves no ambiguity about which
+# directory is the package; there is only one candidate.
+packages = [
+  "xgb_bikeflow",
+  "xgb_bikeflow.features",
+]
+package-dir = { "" = "src" }
+
+# No `package-data`: configs and data are repository assets, not package assets.
+# A config path is resolved relative to the config file, so shipping the configs
+# inside site-packages/ would ship paths to nothing.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Import the package from src/ without requiring an install.
+pythonpath = ["src"]
+# These train real models on real orders: 34 tests take about 4 minutes on one
+# core, most of it building panels from 666k order rows.
+#
+# `-p no:cacheprovider` stops pytest from creating its scratch directory in the
+# working tree.  It normally makes one under `.pytest_cache/`, but when that
+# location is not writable -- which is the case under a sandbox -- it falls back
+# to `pytest-cache-files-<random>/` beside the config instead, and those are
+# created with owner-only permissions that later cannot be removed.  The cost is
+# `--lf` / `--ff`, which this suite does not need: a full run is four minutes.
+addopts = "-q -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
