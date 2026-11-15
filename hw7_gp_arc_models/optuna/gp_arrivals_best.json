@@ -1,0 +1,16 @@
+{
+  "panel": "gp",
+  "channel": "arrivals",
+  "best_value": 1.3252207480425067,
+  "best_params": {
+    "n_estimators": 350,
+    "learning_rate": 0.01074397950404297,
+    "max_depth": 3,
+    "min_child_weight": 0.9019999658372531,
+    "subsample": 0.9514941728053503,
+    "colsample_bytree": 0.6059121055348159,
+    "reg_lambda": 0.22821846735398046,
+    "reg_alpha": 0.20695580789945758
+  },
+  "n_trials": 25
+}

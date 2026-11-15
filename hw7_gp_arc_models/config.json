@@ -1,0 +1,125 @@
+{
+  "params": {
+    "objective": "count:poisson",
+    "tree_method": "hist",
+    "n_estimators": 150,
+    "learning_rate": 0.05,
+    "max_depth": 2,
+    "min_child_weight": 2.0,
+    "subsample": 0.85,
+    "colsample_bytree": 1.0,
+    "reg_lambda": 1.0,
+    "reg_alpha": 0.0,
+    "base_score": 0.0,
+    "eval_metric": "poisson-nloglik",
+    "random_state": 0,
+    "n_jobs": 1,
+    "verbosity": 0
+  },
+  "tuned_params": {
+    "gp": {
+      "departures": {
+        "objective": "count:poisson",
+        "tree_method": "hist",
+        "n_estimators": 400,
+        "learning_rate": 0.014370526309846407,
+        "max_depth": 1,
+        "min_child_weight": 7.532926218467619,
+        "subsample": 0.6748076098809416,
+        "colsample_bytree": 0.6170443222378836,
+        "reg_lambda": 0.5449391255505843,
+        "reg_alpha": 0.018592061739680563,
+        "base_score": 0.0,
+        "eval_metric": "poisson-nloglik",
+        "random_state": 0,
+        "n_jobs": 1,
+        "verbosity": 0
+      },
+      "arrivals": {
+        "objective": "count:poisson",
+        "tree_method": "hist",
+        "n_estimators": 350,
+        "learning_rate": 0.01074397950404297,
+        "max_depth": 3,
+        "min_child_weight": 0.9019999658372531,
+        "subsample": 0.9514941728053503,
+        "colsample_bytree": 0.6059121055348159,
+        "reg_lambda": 0.22821846735398046,
+        "reg_alpha": 0.20695580789945758,
+        "base_score": 0.0,
+        "eval_metric": "poisson-nloglik",
+        "random_state": 0,
+        "n_jobs": 1,
+        "verbosity": 0
+      }
+    },
+    "arc": {
+      "departures": {
+        "objective": "count:poisson",
+        "tree_method": "hist",
+        "n_estimators": 250,
+        "learning_rate": 0.013230055657140541,
+        "max_depth": 2,
+        "min_child_weight": 11.888185495449425,
+        "subsample": 0.6936075929900131,
+        "colsample_bytree": 0.5865987979499991,
+        "reg_lambda": 1.7771570711845297,
+        "reg_alpha": 0.0013883233143864387,
+        "base_score": 0.0,
+        "eval_metric": "poisson-nloglik",
+        "random_state": 0,
+        "n_jobs": 1,
+        "verbosity": 0
+      },
+      "arrivals": {
+        "objective": "count:poisson",
+        "tree_method": "hist",
+        "n_estimators": 400,
+        "learning_rate": 0.014370526309846407,
+        "max_depth": 1,
+        "min_child_weight": 7.532926218467619,
+        "subsample": 0.6748076098809416,
+        "colsample_bytree": 0.6170443222378836,
+        "reg_lambda": 0.5449391255505843,
+        "reg_alpha": 0.018592061739680563,
+        "base_score": 0.0,
+        "eval_metric": "poisson-nloglik",
+        "random_state": 0,
+        "n_jobs": 1,
+        "verbosity": 0
+      }
+    }
+  },
+  "tuned": true,
+  "reused_params": false,
+  "preset": "calendar",
+  "per_channel": true,
+  "gp_features": [
+    "channel",
+    "slot",
+    "dow",
+    "is_raining"
+  ],
+  "arc_features": [
+    "channel",
+    "slot",
+    "dow",
+    "is_raining"
+  ],
+  "trend_in_offset": true,
+  "trend_caps": {
+    "gp": {
+      "departures": 1.2,
+      "arrivals": 1.15
+    },
+    "arc": {
+      "departures": 1.2,
+      "arrivals": 1.2
+    }
+  },
+  "channels": [
+    "departures",
+    "arrivals"
+  ],
+  "weather": "D:\\apm\\course\\大四上\\数据驱动的决策\\xgb_bikeflow\\data\\weather_hourly.csv"
+}

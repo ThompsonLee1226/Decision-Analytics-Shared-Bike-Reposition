@@ -1,0 +1,16 @@
+{
+  "panel": "arc",
+  "channel": "departures",
+  "best_value": 1.3579407356355697,
+  "best_params": {
+    "n_estimators": 250,
+    "learning_rate": 0.013230055657140541,
+    "max_depth": 2,
+    "min_child_weight": 11.888185495449425,
+    "subsample": 0.6936075929900131,
+    "colsample_bytree": 0.5865987979499991,
+    "reg_lambda": 1.7771570711845297,
+    "reg_alpha": 0.0013883233143864387
+  },
+  "n_trials": 25
+}

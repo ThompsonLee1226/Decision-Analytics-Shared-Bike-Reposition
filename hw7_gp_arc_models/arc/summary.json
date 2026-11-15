@@ -1,0 +1,91 @@
+{
+  "overall": {
+    "arrivals": {
+      "n": 50736,
+      "poisson_deviance": 1.187935369848967,
+      "mae": 1.3014523046647344,
+      "calibration": 0.9733778562740445,
+      "offset_only_deviance": 1.2000649434447472
+    },
+    "departures": {
+      "n": 50736,
+      "poisson_deviance": 1.3579407356355697,
+      "mae": 1.3702577853882818,
+      "calibration": 0.9698081181711986,
+      "offset_only_deviance": 1.363292895764031
+    },
+    "pooled": {
+      "n": 101472,
+      "poisson_deviance": 1.2729380527422682,
+      "calibration": 0.9716307702254036
+    }
+  },
+  "per_fold": [
+    {
+      "fold": 1,
+      "arrivals": {
+        "n": 16912,
+        "poisson_deviance": 1.210991089807324,
+        "mae": 1.237286792593586,
+        "calibration": 1.00368483101987,
+        "offset_only_deviance": 1.240511950966074
+      },
+      "departures": {
+        "n": 16912,
+        "poisson_deviance": 1.3826960888487976,
+        "mae": 1.3410497053363875,
+        "calibration": 0.9853272087490907,
+        "offset_only_deviance": 1.3999077547900929
+      },
+      "pooled": {
+        "n": 33824,
+        "poisson_deviance": 1.2968435893280605,
+        "calibration": 0.9946828467169064
+      }
+    },
+    {
+      "fold": 2,
+      "arrivals": {
+        "n": 16912,
+        "poisson_deviance": 1.0987351764757898,
+        "mae": 1.2731855083801864,
+        "calibration": 0.9275030137672396,
+        "offset_only_deviance": 1.0700763004008012
+      },
+      "departures": {
+        "n": 16912,
+        "poisson_deviance": 1.2500815826482077,
+        "mae": 1.330985612584951,
+        "calibration": 0.9147636264476011,
+        "offset_only_deviance": 1.2248191232249344
+      },
+      "pooled": {
+        "n": 33824,
+        "poisson_deviance": 1.1744083795619988,
+        "calibration": 0.921224652357415
+      }
+    },
+    {
+      "fold": 3,
+      "arrivals": {
+        "n": 16912,
+        "poisson_deviance": 1.2540798432637874,
+        "mae": 1.3938846130204303,
+        "calibration": 0.9928874733001168,
+        "offset_only_deviance": 1.2896065789673667
+      },
+      "departures": {
+        "n": 16912,
+        "poisson_deviance": 1.4410445354097035,
+        "mae": 1.4387380382435069,
+        "calibration": 1.0125183136420197,
+        "offset_only_deviance": 1.4651518092770655
+      },
+      "pooled": {
+        "n": 33824,
+        "poisson_deviance": 1.3475621893367453,
+        "calibration": 1.0024114251498997
+      }
+    }
+  ]
+}
